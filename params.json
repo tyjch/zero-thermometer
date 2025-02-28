@@ -1,0 +1,52 @@
+{
+    "sensor": {
+        "bias": 0.0,
+        "min_temp": 95.0,
+        "disconnect_threshold": 0.1,
+        "reconnect_threshold": 1
+    },
+    "messaging": {
+        "cooldown": 300,
+        "events": {
+            "convergence": true,
+            "divergence": true,
+            "disconnect": true,
+            "reconnect": true
+        }
+    },
+    "temperature": {
+        "cold": 96.5,
+        "cool": 97.0,
+        "average": 97.5,
+        "warm": 98.0,
+        "hot": 99.0
+    },
+    "display": {
+        "font": {
+            "size": 48,
+            "anchor": "mm"
+        },
+        "colors": {
+            "cold": {
+                "font": "#FFFFFF",
+                "bg": "#0000ff"
+            },
+            "cool": {
+                "font": "#FFFFFF",
+                "bg": "#8080ff"
+            },
+            "average": {
+                "font": "#FFFFFF",
+                "bg": "#000000"
+            },
+            "warm": {
+                "font": "#FFFFFF",
+                "bg": "#ff8080"
+            },
+            "hot": {
+                "font": "#FFFFFF",
+                "bg": "#ff0000"
+            }
+        }
+    }
+}

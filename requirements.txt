@@ -1,0 +1,2 @@
+requests
+adafruit-circuitpython-rgb-display
