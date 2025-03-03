@@ -19,7 +19,7 @@ dc_pin    = digitalio.DigitalInOut(board.D25)
 reset_pin = None
 BAUDRATE  = 64000000
 
-spi = board.SPI()
+spi     = board.SPI()
 display = st7789.ST7789(
     spi,
     cs       = cs_pin,
@@ -80,6 +80,14 @@ class Temperature(Enum):
   WARM    =  1
   HOT     =  2
 
+temp_map = {
+  Temperature.COLD    : 'cold',
+  Temperature.COOL    : 'cool',
+  Temperature.AVERAGE : 'average',
+  Temperature.WARM    : 'warm',
+  Temperature.HOT     : 'hot'
+}
+
 def get_temp_status(value):
   t = params['temperature']
   if t['cool'] < value < t['warm']:
@@ -95,9 +103,10 @@ def get_temp_status(value):
       return Temperature.WARM
 
 def get_display_colors(temp_status: str):
-  return params['display']['colors'][temp_status]
+  return params['display']['colors'][temp_map[temp_status]]
 
 def display_temperature(value, unit='fahrenheit', text_color='#FFFFFF', bg_color='#000000'):
+  print('Displayed temperature')
   display_text = f'{value:.1f} {TEMPERATURE_SYMBOLS.get(unit)}'
   draw.rectangle((0,0, display.height, display.width), outline=0, fill=bg_color)
   draw.text((25,25), display_text, font=font, fill=text_color)
@@ -201,9 +210,11 @@ class Monitor():
 def tick():
   temperature = thermometer.read_temp()['fahrenheit']
   print(temperature)
-  status      = get_temp_status(temperature)
-  #theme       = get_display_colors(status)
-  #display_temperature(temperature, text_color=theme['font'], bg_color=theme['bg'])
+  status = get_temp_status(temperature)
+  print(status)
+  theme  = get_display_colors(status)
+  print(theme)
+  display_temperature(temperature, text_color=theme['font'], bg_color=theme['bg'])
   
 
 if __name__ == '__main__':
