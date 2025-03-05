@@ -68,7 +68,6 @@ while True:
             print('Blue')
         else:
             display.fill(color565(0, 255, 0))  # Green when no buttons pressed
-            
             print('Green')   
     except Exception as e:
         print(e)

@@ -16,3 +16,6 @@ hypothesis==6.127.7
 # Network
 requests==2.32.3
 influxdb-client[async]==1.48.0
+
+# Other
+python-dotenv==1.0.1

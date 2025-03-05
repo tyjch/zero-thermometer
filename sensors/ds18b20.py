@@ -1,57 +1,58 @@
 import os
 import glob
-import time
-import RPi.GPIO as GPIO
+from datetime import datetime
+import asyncio
+from typing import Optional, List
+from .base import Sensor, Measurement
 
-class DS18B20:
-    def __init__(self, power_pin=26, bias=0):  # GPIO26 is pin 37
-        self.power_pin = power_pin
-        self.bias = bias
-        
-        # Setup GPIO for power
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.power_pin, GPIO.OUT)
-        GPIO.output(self.power_pin, GPIO.HIGH)  # Provide 3.3V power
-        
-        # Wait for the sensor to initialize
-        time.sleep(2)
-        
-        # Define the path for device files
+
+class DS18B20Sensor(Sensor):
+
+    def __init__(self, id: Optional[str] = None, name: Optional[str] = None):
+        super().__init__(id, name)
         self.base_dir = '/sys/bus/w1/devices/'
-        try:
-            self.device_folder = glob.glob(self.base_dir + '28*')[0]
-            self.device_file = self.device_folder + '/w1_slave'
-        except IndexError:
-            raise Exception("No DS18B20 sensor found. Check connections and ensure 1-Wire is enabled in /boot/config.txt")
+        self.device_folder = self._find_device()
+        if not self.device_folder:
+            raise RuntimeError("DS18B20 sensor not found")
+        
+        self.device_file = os.path.join(self.device_folder, 'temperature')
     
-    def read_temp_raw(self):
+    def _find_device(self) -> Optional[str]:
+        try:
+            device_folders = glob.glob(os.path.join(self.base_dir, '28-*'))
+            if device_folders:
+                return device_folders[0]
+            return None
+        except Exception as e:
+            raise RuntimeError(f"Error finding DS18B20 device: {e}")
+    
+    async def _read_temp_raw(self) -> Optional[str]:
         try:
             with open(self.device_file, 'r') as f:
-                lines = f.readlines()
-            return lines
+                return f.read()
         except Exception as e:
-            print(f"Error reading sensor: {e}")
-            return None
+            raise RuntimeError(f"Error reading from DS18B20: {e}")
     
-    def read_temp(self):
-        lines = self.read_temp_raw()
-        if not lines:
-            return None
+    async def read(self) -> Measurement:
+        try:
+            temp_string = await self._read_temp_raw()
+            if temp_string:
+                temp_c = float(temp_string) / 1000.0
+                measurement = Measurement(
+                    value     = temp_c,
+                    unit      = "°C",
+                    timestamp = datetime.now(),
+                    sensor_id = self.id,
+                    metadata  = {
+                        "sensor_type" : "DS18B20",
+                        "raw_reading" : temp_string
+                    }
+                )
+                
+                self.last_reading = measurement
+                return measurement
             
-        while lines[0].strip()[-3:] != 'YES':
-            time.sleep(0.2)
-            lines = self.read_temp_raw()
-        
-        equals_pos = lines[1].find('t=')
-        if equals_pos != -1:
-            temp_string = lines[1][equals_pos+2:]
-            temp_c = float(temp_string) / 1000.0
-            temp_f = temp_c * 9.0 / 5.0 + 32.0
-            return {'celsius': temp_c, 'fahrenheit': temp_f + self.bias}
-        
-        return None
-    
-    def cleanup(self):
-        GPIO.output(self.power_pin, GPIO.LOW)
-        GPIO.cleanup()
-
+            raise RuntimeError("Unable to read temperature from DS18B20")
+            
+        except Exception as e:
+            raise RuntimeError(f"Error processing DS18B20 reading: {e}")
