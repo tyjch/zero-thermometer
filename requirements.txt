@@ -1,2 +1,18 @@
-requests
-adafruit-circuitpython-rgb-display
+# Hardware
+adafruit-blinka==8.54.0
+
+# Sensors
+adafruit-circuitpython-sht4x==1.0.22
+
+# Display
+adafruit-circuitpython-rgb-display==3.13
+pillow==11.1.0
+numpy==2.2.3
+
+# Testing
+pytest==8.3.5
+hypothesis==6.127.7
+
+# Network
+requests==2.32.3
+influxdb-client[async]==1.48.0

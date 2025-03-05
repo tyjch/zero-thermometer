@@ -73,13 +73,6 @@ TEMPERATURE_SYMBOLS = {
   'celsius'    : '\u2103'
 }
 
-class Temperature(Enum):
-  COLD    = -2
-  COOL    = -1
-  AVERAGE =  0
-  WARM    =  1
-  HOT     =  2
-
 temp_map = {
   Temperature.COLD    : 'cold',
   Temperature.COOL    : 'cool',
@@ -116,12 +109,7 @@ def display_temperature(value, unit='fahrenheit', text_color='#FFFFFF', bg_color
 # Should only message once per shift between temperature thresholds
 # Should also limit how often messages can be sent, since it may hover around a threshold
 
-class Event(Enum):
-  NONE        =  0
-  DIVERGENCE  = -1
-  CONVERGENCE =  1
-  DISCONNECT  = -2
-  RECONNECT   =  2
+
   
 
 class Monitor():
