@@ -2,13 +2,7 @@ import os
 import json
 import board
 import digitalio
-import requests
-from pprint import pprint
-from enum import Enum
 from dotenv import load_dotenv
-from PIL import Image, ImageDraw, ImageFont
-from adafruit_rgb_display import st7789
-#from discord import send_message
 from sensor import DS18B20
 
 load_dotenv()
