@@ -5,7 +5,7 @@ from sensors.base import Sensor, Measurement
 
 
 class Sampler:
-    
+  
     def __init__(
         self,
         sensors             : List[Sensor],
@@ -19,13 +19,25 @@ class Sampler:
         self.samples_per_reading = samples_per_reading
         self.sample_delay        = sample_delay
         self.averaging           = averaging
-        
-        self.last_readings: Dict[str, Measurement] = {}
-        self.running  = False
-        self.callback = None
+        self.last_readings       = {}
+        self.running             = False
+        self.callback            = None
     
     def set_callback(self, callback):
         self.callback = callback
+    
+    def stop(self):
+        self.running = False
+    
+    def update_config(self, config: Dict[str, Any]):
+        if 'sample_interval' in config:
+            self.sample_interval = config['sample_interval']
+        if 'samples_per_reading' in config:
+            self.samples_per_reading = config['samples_per_reading']
+        if 'sample_delay' in config:
+            self.sample_delay = config['sample_delay']
+        if 'averaging' in config:
+            self.averaging = config['averaging']
     
     async def sample_all(self) -> List[Measurement]:
         results = []
@@ -64,16 +76,3 @@ class Sampler:
                 await self.callback(measurements)
             
             await asyncio.sleep(self.sample_interval)
-    
-    def stop(self):
-        self.running = False
-    
-    def update_config(self, config: Dict[str, Any]):
-        if 'sample_interval' in config:
-            self.sample_interval = config['sample_interval']
-        if 'samples_per_reading' in config:
-            self.samples_per_reading = config['samples_per_reading']
-        if 'sample_delay' in config:
-            self.sample_delay = config['sample_delay']
-        if 'averaging' in config:
-            self.averaging = config['averaging']
