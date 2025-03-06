@@ -1,10 +1,9 @@
-# display/base.py
-from abc import ABC, abstractmethod
-from typing import Optional, Dict, Tuple, List, Any, Type
-from PIL import Image, ImageDraw, ImageFont
 import board
 import digitalio
 import adafruit_rgb_display
+from abc import ABC, abstractmethod
+from typing import Optional, Dict, Tuple, List, Any, Type
+from PIL import Image, ImageDraw, ImageFont
 from sensors.base import Measurement
 
 
@@ -17,10 +16,6 @@ class Display(ABC):
         cs_pin           : int = 8,
         rst_pin          : Optional[int] = 25,
         rotation         : int = 0,
-        font_size        : int = 24,
-        font_path        : str = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        background_color : Tuple[int, int, int] = (0, 0, 0),
-        text_color       : Tuple[int, int, int] = (255, 255, 255),
         baudrate         : int = 64000000,
         precision        : int = 2
     ):
@@ -38,11 +33,9 @@ class Display(ABC):
         self.precision        = precision
         self.display          = None
         
-        # Create a PIL Image and ImageDraw object
         self.image = Image.new("RGB", (width, height), background_color)
         self.draw  = ImageDraw.Draw(self.image)
         
-        # Load font
         try:
             self.font = ImageFont.truetype(font_path, font_size)
         except IOError:

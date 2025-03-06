@@ -13,3 +13,10 @@ class Temperature(Enum):
   AVERAGE =  0
   WARM    =  1
   HOT     =  2
+
+
+
+class Units(Enum):
+  FAHRENHEIT = 0
+  CELSIUS    = 1
+  HUMIDITY   = 2
