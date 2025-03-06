@@ -6,7 +6,7 @@ from typing import Optional, List
 from .base import Sensor, Measurement
 
 
-class DS18B20Sensor(Sensor):
+class DS18B20(Sensor):
 
     def __init__(self, id: Optional[str] = None, name: Optional[str] = None):
         super().__init__(id, name)

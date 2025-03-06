@@ -17,11 +17,9 @@ class SHT41(Sensor):
     ):
         super().__init__(id, name)
         self.measurement_type = measurement_type
-        self.i2c = board.I2C()
-        self.sensor = adafruit_sht4x.SHT4x(self.i2c, address=i2c_address)
-        self.sensor.mode = adafruit_sht4x.Mode.NOHEAT_HIGHPRECISION
-        
-        # Store measurement units
+        self.i2c              = board.I2C()
+        self.sensor           = adafruit_sht4x.SHT4x(self.i2c)
+        self.sensor.mode      = adafruit_sht4x.Mode.NOHEAT_HIGHPRECISION
         self.units = {
             "temperature" : "°C",
             "humidity"    : "%RH"
