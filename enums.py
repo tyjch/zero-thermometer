@@ -14,9 +14,6 @@ class Temperature(Enum):
   WARM    =  1
   HOT     =  2
 
-
-
-class Units(Enum):
-  FAHRENHEIT = 0
-  CELSIUS    = 1
-  HUMIDITY   = 2
+class Measurable(Enum):
+  TEMPERATURE = 0
+  HUMIDITY    = 1
