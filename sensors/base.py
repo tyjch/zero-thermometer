@@ -1,59 +1,64 @@
+import os
+import glob
+import time
+import asyncio
+import functools
+import board
+import adafruit_si7021
+import RPi.GPIO as GPIO
+from pint import UnitRegistry, Unit, Quantity
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-import asyncio
-import uuid
+from typing import List, Optional, Dict, Any, Callable
+from pprint import pprint
+
+
+units = UnitRegistry()
+units.formatter.default_format = '.2f'
 
 
 @dataclass
 class Measurement:
-    value     : float
-    unit      : str
-    timestamp : datetime
-    sensor_id : str
-    metadata  : Optional[Dict[str, Any]] = None
+  value       : float
+  dimension   : str
+  unit        : str
+  sensor_name : str
+  sensor_id   : str
+  timestamp   : datetime
 
 
 class Sensor(ABC):
     
-    def __init__(self, id: Optional[str]=None, name: Optional[str]=None):
-        self.id = id if id else str(uuid.uuid4())
-        self.name = name if name else self.__class__.__name__
-        self.last_reading: Optional[Measurement] = None
+  def __init__(self, name:str, preferred_units:Optional[List[Unit]]=[]):
+    self.name            : str        = name
+    self.preferred_units : List[Unit] = preferred_units or []
     
-    @abstractmethod
-    async def read(self) -> Measurement:
-        """Read a single measurement from the sensor"""
-        pass
-    
-    async def sample(self, count: int=1, interval: float=0.5) -> List[Measurement]:
-        """Take multiple samples from the sensor"""
-        measurements = []
-        for _ in range(count):
-            measurement = await self.read()
-            measurements.append(measurement)
-            if _ < count - 1:  # Don't sleep after the last reading
-                await asyncio.sleep(interval)
-        
-        self.last_reading = measurements[-1]  # Store the most recent reading
-        return measurements
+  @property
+  @abstractmethod
+  def id(self):
+    # Should return an id unique to the hardware
+    pass
 
-    async def sample_average(self, count: int=3, interval: float=0.5) -> Measurement:
-        """Take multiple samples and return their average"""
-        measurements = await self.sample(count, interval)
-        
-        # Calculate the average value
-        avg_value = sum(m.value for m in measurements) / len(measurements)
-        
-        # Create a new measurement with the average value and current timestamp
-        avg_measurement = Measurement(
-            value=avg_value,
-            unit=measurements[0].unit,  # Assume all measurements have the same unit
-            timestamp=datetime.now(),
-            sensor_id=self.id,
-            metadata={"sample_count": count, "sample_interval": interval}
-        )
-        
-        self.last_reading = avg_measurement
-        return avg_measurement
+  def create_measurement(self, quantity:Quantity, override_dimension:Optional[str]=None):
+    quantity   = quantity.to_preferred(self.preferred_units)
+    dimensions = list(quantity.dimensionality.keys())
+    
+    if not dimensions:
+      if override_dimension:
+        dimension = override_dimension
+      else:
+        raise ValueError("Must provide an override_dimension for dimensionless quantities")
+    elif len(dimensions) == 1:
+      dimension = dimensions[0].strip('[]')
+    else:
+      raise ValueError("Compound dimensions are not supported")
+    
+    return Measurement(
+      value       = quantity.magnitude,
+      dimension   = dimension,
+      unit        = str(quantity.units).lower(),
+      sensor_name = self.name,
+      sensor_id   = self.id,
+      timestamp   = datetime.now().isoformat()
+    )
