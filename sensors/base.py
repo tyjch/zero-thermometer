@@ -60,5 +60,5 @@ class Sensor(ABC):
       unit        = str(quantity.units).lower(),
       sensor_name = self.name,
       sensor_id   = self.id,
-      timestamp   = datetime.now().isoformat()
+      timestamp   = datetime.now()
     )

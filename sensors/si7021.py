@@ -13,10 +13,10 @@ class SI7021(Sensor):
   def id(self):
     return self._sensor.serial_number
   
-  def temperature(self) -> Measurement:
+  async def temperature(self) -> Measurement:
     quantity = Quantity(self._sensor.temperature, units.celsius)
     return self.create_measurement(quantity=quantity)
     
-  def relative_humidity(self) -> Measurement:
+  async def relative_humidity(self) -> Measurement:
     quantity = Quantity(self._sensor.relative_humidity, units.percent)
     return self.create_measurement(quantity=quantity, override_dimension='relative_humidity')

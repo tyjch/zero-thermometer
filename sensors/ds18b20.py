@@ -18,11 +18,11 @@ class DS18B20(Sensor):
   def id(self):
     return self._id
   
-  def temperature(self) -> Measurement:
-    quantity = Quantity(self._temperature(), units.celsius)
+  async def temperature(self) -> Measurement:
+    quantity = Quantity(await self._temperature(), units.celsius)
     return self.create_measurement(quantity=quantity)
     
-  def _temperature(self):
+  async def _temperature(self):
     def read_file():
       try:
         with open(self._file, 'r') as f:
