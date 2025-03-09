@@ -43,7 +43,7 @@ fi
 
 # Enable 1-Wire GPIO
 if ! grep -q "^dtoverlay=w1-gpio" $CONFIG_PATH; then
-  echo "dtoverlay=w1-gpio,gpiopin=19" | sudo tee -a $CONFIG_PATH
+  echo "dtoverlay=w1-gpio" | sudo tee -a $CONFIG_PATH
 fi
 
 # Load 1-Wire modules

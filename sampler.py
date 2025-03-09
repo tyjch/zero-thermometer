@@ -41,9 +41,12 @@ class Sampler:
     measurements = []
     for i in range(1, self.size):
       # TODO: Assumes the method is async
-      m = await sensor_method()
-      measurements.append(m)
-      await asyncio.sleep(self.delay)
+      try:
+        m = await sensor_method()
+        measurements.append(m)
+        await asyncio.sleep(self.delay)
+      except OSError:
+        continue
     return measurements
     
   def aggregate_measurements(self, measurements:List[Measurement]) -> Sample:
