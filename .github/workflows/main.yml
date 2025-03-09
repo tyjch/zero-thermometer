@@ -1,0 +1,22 @@
+name: Deploy to Raspberry Pi Zero 2 W
+
+on:
+  push:
+    branches: [ master ]  # Adjust to your main branch name
+
+jobs:
+  deploy:
+    runs-on: zero  # This targets your Raspberry Pi runner
+    defaults:
+      run:
+        working-directory: /home/admin/zero-thermometer
+    steps:
+      - name : Pull latest changes
+        run  : git pull
+        
+      - name : Schedule reboot
+        run  : sudo shutdown -r +1 &
+
+      - name : Mark as success
+        run  : echo "Deployment successful, Pi will reboot shortly"
+      
