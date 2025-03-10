@@ -14,9 +14,9 @@ jobs:
       - name : Pull latest changes
         run  : git pull
         
-      - name : Schedule reboot
-        run  : sudo shutdown -r +1 &
+      - name : Restart service
+        run  : sudo systemctl restart zero-thermometer.service
 
       - name : Mark as success
-        run  : echo "Deployment successful, Pi will reboot shortly"
+        run  : echo "Deployment successful, Pi will restart service shortly"
       
