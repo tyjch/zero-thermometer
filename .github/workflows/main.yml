@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: zero  # This targets your Raspberry Pi runner
+    runs-on: self-hosted  # This targets your Raspberry Pi runner
     defaults:
       run:
         working-directory: /home/admin/zero-thermometer
