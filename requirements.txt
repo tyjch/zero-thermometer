@@ -22,3 +22,4 @@ influxdb-client[async]==1.48.0
 
 # Other
 python-dotenv==1.0.1
+loguru==0.7.3
