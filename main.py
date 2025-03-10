@@ -34,6 +34,7 @@ async def main():
         logger.success("Point inserted in InfluxDB")
       except Exception as e:
         logger.error(e)
+        raise e
 
 if __name__ == '__main__':
   asyncio.run(main())
