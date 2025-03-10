@@ -2,6 +2,7 @@ import os
 import asyncio
 from pprint import pprint
 from dotenv import load_dotenv
+from loguru import logger
 from sensors.base import Sensor, Measurement
 from sensors.ds18b20 import DS18B20
 from sensors.si7021 import SI7021
@@ -25,10 +26,14 @@ async def main():
   sampler = Sampler(sensors=[s1, s2])
   
   while True:
+    print('Awaiting samples')
     samples = await sampler.get_samples()
     for s in samples:
-      influx.insert_point(s)
-      
+      try:
+        influx.insert_point(s)
+        logger.success("Point inserted in InfluxDB")
+      except Exception as e:
+        logger.error(e)
 
 if __name__ == '__main__':
   asyncio.run(main())
