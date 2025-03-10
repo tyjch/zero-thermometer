@@ -1,5 +1,6 @@
 import board
 import adafruit_si7021
+from loguru import logger
 from pint import Quantity
 from .base import Sensor, Measurement, units
 
@@ -18,5 +19,9 @@ class SI7021(Sensor):
     return self.create_measurement(quantity=quantity)
     
   async def relative_humidity(self) -> Measurement:
-    quantity = Quantity(self._sensor.relative_humidity, units.percent)
-    return self.create_measurement(quantity=quantity, override_dimension='relative_humidity')
+    try:
+      quantity = Quantity(self._sensor.relative_humidity, units.percent)
+      return self.create_measurement(quantity=quantity, override_dimension='relative_humidity')
+    except ValueError as e:
+      logger.error(e)
+      pass
