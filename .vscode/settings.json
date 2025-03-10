@@ -1,4 +1,4 @@
 {
   "editor.tabSize"            : 2,
-  "explorer.excludeGitIgnore" : true
+  "explorer.excludeGitIgnore" : false
 }
