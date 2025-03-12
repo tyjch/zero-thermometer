@@ -66,14 +66,7 @@ class RaspberryPi(Sensor):
         quantity = Quantity(disk.percent, units.percent)
         return self.create_measurement(quantity=quantity, override_dimension='disk_usage')
     
-    # async def disk_free(self) -> Measurement:
-    #     # Get free disk space in GB
-    #     disk = psutil.disk_usage('/')
-    #     free_gb = disk.free / (1024 * 1024 * 1024)  # Convert bytes to GB
-    #     quantity = Quantity(free_gb, units.gigabyte)
-    #     return self.create_measurement(quantity=quantity, override_dimension='disk_free')
-    
-    async def temperature(self) -> Measurement:
+    async def cpu_temp(self) -> Measurement:
         # Read CPU temperature from system file and convert to Fahrenheit
         try:
             with open(self._temp_path, 'r') as f:
