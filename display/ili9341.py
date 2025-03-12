@@ -2,60 +2,68 @@ import board
 import digitalio
 import adafruit_rgb_display.ili9341 as ili9341
 from typing import Optional, Tuple, Dict, Any
-from .base import Display
+from PIL import Image, ImageDraw, ImageFont
+from loguru import logger
+import time
 
-
-class ILI9341(Display):
-    # Adafruit PiTFT 2.2" HAT MINI display (ILI9341)
+class ILI9341:
     
     def __init__(
         self,
-        dc_pin           : int = 24,
-        cs_pin           : int = 8,
-        rst_pin          : Optional[int] = 25,
-        rotation         : int = 90,
-        font_size        : int = 24
+        dc_pin    : int = 24,
+        cs_pin    : int = 8,
+        rst_pin   : Optional[int] = 25,
+        rotation  : int = 270,
+        font_size : int = 64,
+        precision : int = 2,
+        font_path : str = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     ):
-        # ILI9341 is 240x320, but we rotate it
-        if rotation in [90, 270]:
-            super().__init__(320, 240, rotation, font_size)
-        else:
-            super().__init__(240, 320, rotation, font_size)
-        
-        self.dc_pin  = dc_pin
-        self.cs_pin  = cs_pin
-        self.rst_pin = rst_pin
-        self.display = None
-        
-    
-    def initialize(self) -> None:
-        spi = board.SPI()
-        dc  = digitalio.DigitalInOut(getattr(board, f"D{self.dc_pin}"))
-        cs  = digitalio.DigitalInOut(getattr(board, f"D{self.cs_pin}"))
-        rst = None
-
-        if self.rst_pin is not None:
-            rst = digitalio.DigitalInOut(getattr(board, f"D{self.rst_pin}"))
-        
-        self.display = ili9341.ILI9341(
-            spi,
-            cs       = cs,
-            dc       = dc,
-            rst      = rst,
-            rotation = self.rotation,
-            baudrate = 64000000
+        # Initialize the display
+        self._display = ili9341.ILI9341(
+            board.SPI(),
+            cs       = digitalio.DigitalInOut(board.CE0),
+            dc       = digitalio.DigitalInOut(board.D25),
+            rst      = digitalio.DigitalInOut(board.D24), 
+            baudrate = 24000000,
+            rotation = rotation
         )
+        
+        self.font_size = font_size
+        self.font_path = font_path
+        
+        # Determine actual dimensions based on rotation
+        if rotation % 180 == 90:  # 90 or 270 degrees
+            self.width = 320
+            self.height = 240
+        else:  # 0 or 180 degrees
+            self.width = 240
+            self.height = 320
+        
+        logger.info(f"Creating image with dimensions: {self.width}x{self.height}")
+        # Use WHITE for background since colors are inverted
+        self.image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
+        self.draw = ImageDraw.Draw(self.image)
+        
+        try:
+            self.font = ImageFont.truetype(font_path, font_size)
+        except IOError:
+            logger.warning(f"Could not load font {font_path}, using default")
+            self.font = ImageFont.load_default()
     
-    def display_temperature(self, value, font_color='#ffffff', background_color='#000000') -> None:
-        display_text = f'{value:1f} ℉'
-        if self.display:
-            self.display.image(self.image)
-            self.draw.rectangle(0, 0, self.height, self.width, outline=0, fill=background_color)
-            self.draw.text((25, 25), display_text, font=self.font, fill=font_color)
-            
-            
-if __name__ == '__main__':
-    display = ILI9341()
-    value   = 97.4
-    display.display_temperature(value)
+    def show_value(self, value: float):
+        self.draw.rectangle((0, 0, self.width, self.height), fill=(255, 255, 255))
+        self.draw.text(
+            (self.width // 2, self.height // 2),
+            f'{value:.2f} \u2109',
+            font=self.font,
+            fill=(0, 0, 0),  # Black text
+            anchor="mm"  # Center the text
+        )
+        
+        try:
+            self._display.image(self.image)
+            logger.info("Image sent to display")
+        except ValueError as e:
+            logger.error(f"Display error: {e}")
+            logger.error(f"Image dimensions: {self.image.size}")
     
