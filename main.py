@@ -10,12 +10,14 @@ from sensors.pi import RaspberryPi
 from sampler import Sampler, Sample
 from clients.influx import InfluxClient
 from clients.buffer import SampleBuffer
+from display.ili9341 import ILI9341
 
 load_dotenv()
 
 async def main():
-  buffer = SampleBuffer()
-  influx = InfluxClient(
+  display = ILI9341()
+  buffer  = SampleBuffer()
+  influx  = InfluxClient(
     url    = os.getenv('INFLUX_URL'),
     token  = os.getenv('INFLUX_TOKEN'),
     org    = os.getenv('INFLUX_ORG'),
@@ -25,22 +27,20 @@ async def main():
   
   s1 = DS18B20()
   s2 = SI7021()
-  #s3 = RaspberryPi()
+  s3 = RaspberryPi()
   
   sampler = Sampler(
-    sensors    = [s1, s2],
-    dimensions = [
-      'temperature',
-      'relative_humidity'
-      # 'cpu_load',
-      # 'memory_usage',
-      # 'disk_usage',
-    ]
-    )
+    sensors    = [s1, s2, s3],
+    dimensions = ['temperature', 'relative_humidity', 'cpu_load', 'cpu_temp']
+  )
+  
+  sampler.size  = 5
+  sampler.delay = 0.1
   
   while True:
     print('Awaiting samples')
     samples = await sampler.get_samples()
+    display.display_temperature(97.4)
     for s in samples:
       try:
         is_successful = influx.insert_point(s)

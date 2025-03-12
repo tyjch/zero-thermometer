@@ -17,7 +17,12 @@ class Display(ABC):
         rst_pin          : Optional[int] = 25,
         rotation         : int = 0,
         baudrate         : int = 64000000,
-        precision        : int = 2
+        precision        : int = 2,
+        font_size        : int = 24,
+        font_path        : str = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+        background_color : str = '#000000',
+        text_color       : str = '#ffffff',
+        
     ):
         self.width            = width
         self.height           = height       
@@ -41,7 +46,7 @@ class Display(ABC):
         except IOError:
             self.font = ImageFont.load_default()
     
-    @abstractmethod
+    
     def _create_display(self) -> None:
         """Create the specific display hardware"""
         pass
