@@ -39,7 +39,7 @@ class Sampler:
     
   async def get_measurements(self, sensor_method) -> List[Measurement]:
     measurements = []
-    for i in range(1, self.size):
+    for i in range(self.size):
       # TODO: Assumes the method is async
       try:
         m = await sensor_method()
@@ -51,9 +51,17 @@ class Sampler:
     
   def aggregate_measurements(self, measurements:List[Measurement]) -> Sample:
     values = [m.value for m in measurements]
+    
+    if len(values) == 1:
+      mean     = values[0]
+      variance = 0
+    else:
+      mean     = statistics.mean(values)
+      variance = statistics.variance(values)
+    
     return Sample(
-      mean         = statistics.mean(values),
-      variance     = statistics.variance(values),
+      mean         = mean,
+      variance     = variance,
       minimum      = min(values),
       maximum      = max(values),
       unit         = condense(measurements, 'unit'),
