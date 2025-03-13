@@ -16,7 +16,7 @@ from display.ili9341 import ILI9341
 
 load_dotenv()
 
-SHUTDOWN_PIN = board.D27
+SHUTDOWN_PIN    = board.D27
 shutdown_button = None
 
 def setup_shutdown_button():
@@ -56,9 +56,6 @@ async def main():
     dimensions = ['temperature', 'relative_humidity', 'cpu_load', 'cpu_temp']
   )
   
-  sampler.size  = 5
-  sampler.delay = 0.1
-  
   try:
     button_task = asyncio.create_task(check_button())
     while True:
@@ -66,17 +63,13 @@ async def main():
         samples = await sampler.get_samples()
         for s in samples:
           try:
-            is_successful = influx.insert_point(s)
-            if is_successful:
-              logger.success("Point inserted in InfluxDB")
-            else:
-              logger.warning("Point not inserted to InfluxDB")
+            influx.insert_point(s)
           except Exception as e:
             logger.error(e)
             raise e
         
-        temp_sample = next((s for s in samples if s.dimension == 'temperature'), None)
-        if temp_sample and display:
+        temperature_sample = next((s for s in samples if s.dimension == 'temperature'), None)
+        if temperature_sample and display:
           display.show_value(temp_sample.mean)
 
   except Exception as e:
