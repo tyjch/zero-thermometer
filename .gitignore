@@ -1,22 +1,22 @@
 # Always Hidden
 __pycache__
 venv
-sample_buffer.db
 measurement_buffer.db
+.pytest_cache
 
 # Folders
 .github/
-.vscode/
+#.vscode/
 #clients/
 # display/
 logs/
 network/
 #sensors/
-tests/
+#tests/
 
 # Files
-# todo.md
-.env
+todo.md
+#.env
 setup.sh
 requirements.txt
-test_display.py
+# test_display.py

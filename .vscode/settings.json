@@ -1,17 +1,20 @@
 {
-  "editor.tabSize"            : 2,
-  "explorer.excludeGitIgnore" : true,
-  "editor.semanticTokenColorCustomizations": {
-  "[Your Theme]": {
-    "rules": {
-      "*.decorator": {
-        "foreground": "#555555",
-        "fontStyle": "italic"
-      },
-      "*.exception": {
-        "foreground": "#555555"
-      }
-    }
-  }
-}
+  "editor.tabSize"                   : 2,
+  "explorer.excludeGitIgnore"        : true,
+  "scm.diffDecorations"              : "none",
+  "python.testing.pytestArgs"        : [
+    "tests"
+  ],
+  "python.testing.unittestEnabled"   : false,
+  "python.testing.pytestEnabled"     : false,
+  "files.exclude"                    : {
+    "system:/**": true,
+    "system:/wifi-manager.service": false,
+    "system:/zero-thermometer.service": false
+  },
+  "python.terminal.executeInFileDir" : false,
+  "python.envFile"                   : "${workspaceFolder}/.env",
+  "terminal.integrated.env.linux"    : {
+      "PYTHONPATH": "${workspaceFolder}"
+  },
 }
