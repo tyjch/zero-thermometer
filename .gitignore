@@ -1,5 +1,21 @@
+# Always Hidden
 __pycache__
 venv
-.env
 sample_buffer.db
-runner/
+
+# Folders
+.github/
+.vscode/
+clients/
+# display/
+logs/
+network/
+sensors/
+tests/
+
+# Files
+todo.md
+.env
+setup.sh
+requirements.txt
+test_display.py

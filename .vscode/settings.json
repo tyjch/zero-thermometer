@@ -1,4 +1,17 @@
 {
   "editor.tabSize"            : 2,
-  "explorer.excludeGitIgnore" : false
+  "explorer.excludeGitIgnore" : true,
+  "editor.semanticTokenColorCustomizations": {
+  "[Your Theme]": {
+    "rules": {
+      "*.decorator": {
+        "foreground": "#555555",
+        "fontStyle": "italic"
+      },
+      "*.exception": {
+        "foreground": "#555555"
+      }
+    }
+  }
+}
 }
