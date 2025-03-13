@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
 import time
 
-class ILI9341:
+class Screen:
     
     def __init__(
         self,
