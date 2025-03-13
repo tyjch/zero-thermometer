@@ -1,7 +1,7 @@
 import glob
 import board
 from pint import Quantity
-from .base import Sensor, Measurement, units
+from .base import Sensor, Measurement, Measurable, units
 
 
 class DS18B20(Sensor):
@@ -18,6 +18,7 @@ class DS18B20(Sensor):
   def id(self):
     return self._id
   
+  @Measurable(frequency=1)
   async def temperature(self) -> Measurement:
     quantity = Quantity(await self._temperature(), units.celsius)
     return self.create_measurement(quantity=quantity)
