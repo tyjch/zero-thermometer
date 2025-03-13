@@ -31,38 +31,34 @@ class ILI9341:
         self.font_size = font_size
         self.font_path = font_path
         
-        # Determine actual dimensions based on rotation
-        if rotation % 180 == 90:  # 90 or 270 degrees
+        if rotation % 180 == 90:
             self.width = 320
             self.height = 240
-        else:  # 0 or 180 degrees
+        else:
             self.width = 240
             self.height = 320
         
-        logger.info(f"Creating image with dimensions: {self.width}x{self.height}")
-        # Use WHITE for background since colors are inverted
-        self.image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
-        self.draw = ImageDraw.Draw(self.image)
+        self.image = Image.new("RGB", (self.width, self.height), (0, 0, 0))
+        self.draw  = ImageDraw.Draw(self.image)
         
         try:
             self.font = ImageFont.truetype(font_path, font_size)
         except IOError:
-            logger.warning(f"Could not load font {font_path}, using default")
             self.font = ImageFont.load_default()
     
     def show_value(self, value: float):
+        display_text = f'{value:.2f} \u2109'
         self.draw.rectangle((0, 0, self.width, self.height), fill=(255, 255, 255))
         self.draw.text(
             (self.width // 2, self.height // 2),
-            f'{value:.2f} \u2109',
-            font=self.font,
-            fill=(0, 0, 0),  # Black text
-            anchor="mm"  # Center the text
+            display_text,
+            font   = self.font,
+            fill   = (255, 255, 255),
+            anchor = "mm"
         )
         
         try:
             self._display.image(self.image)
-            logger.info("Image sent to display")
         except ValueError as e:
             logger.error(f"Display error: {e}")
             logger.error(f"Image dimensions: {self.image.size}")
