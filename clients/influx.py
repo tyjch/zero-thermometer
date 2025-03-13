@@ -1,3 +1,4 @@
+# clients/influx.py
 import os
 import asyncio
 from dataclasses import asdict
@@ -6,13 +7,13 @@ from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import ASYNCHRONOUS
-from sampler import Sample
-from .buffer import SampleBuffer
+from sensors.base import Measurement
+from .buffer import MeasurementBuffer
 
 
 class InfluxClient:
   
-  def __init__(self, url:str, token:str, org:str, bucket:str, buffer:SampleBuffer):
+  def __init__(self, url:str, token:str, org:str, bucket:str, buffer:MeasurementBuffer):
     self.url    = url
     self.token  = token
     self.org    = org
@@ -22,54 +23,48 @@ class InfluxClient:
     if not all([self.url, self.token, self.org, self.bucket]):
       raise ValueError("Missing InfluxDB environment variables")
     
-    
     self.client    = InfluxDBClient(url=self.url, token=self.token, org=self.org)
     self.write_api = self.client.write_api(write_options=ASYNCHRONOUS)
     
-  def create_point(self, sample:Sample) -> Point:
-    data  = asdict(sample)
-    point = Point(sample.sensor_name)
+  def create_point(self, measurement:Measurement) -> Point:
+    data  = asdict(measurement)
+    point = Point(measurement.sensor_name)
     
-    if sample.timestamp:
-      point.time(int(sample.timestamp.timestamp() * 1_000_000_000))
+    if measurement.timestamp:
+      point.time(int(measurement.timestamp.timestamp() * 1_000_000_000))
     
+    # Add tags for efficient querying
     tags = ['dimension', 'unit', 'sensor_id']
     for t in tags:
-      point.tag(t, getattr(sample, t))
+      point.tag(t, getattr(measurement, t))
     
-    fields = ['mean', 'variance', 'minimum', 'maximum', 'sample_size', 'sample_delay']
-    for f in fields:
-      point.field(f, getattr(sample, f))
-    
-    timestamps = ['started', 'ended']
-    for t in timestamps:
-      point.field(t, getattr(sample, t).isoformat())
+    # Add the measurement value as a field
+    point.field("value", measurement.value)
       
     return point
   
-  def insert_point(self, sample):
+  def insert_point(self, measurement:Measurement):
     if self.write_api:
       try:
-        point = self.create_point(sample)
+        point = self.create_point(measurement)
         self.write_api.write(bucket=self.bucket, record=point)
-        print("Wrote to Influx API")
+        print(f"Wrote {measurement.dimension} measurement to Influx API")
         return True
       except Exception as e:
         print(e)
-        self.buffer.insert(sample)
+        self.buffer.insert(measurement)
     else:
-      self.buffer.insert(sample)
+      self.buffer.insert(measurement)
     
   def process_buffer(self, limit:int=100):
-    buffer_length  = self.buffer.length
-    buffer_samples = self.buffer.get_pending(limit=limit)
+    buffer_length = self.buffer.length
+    buffer_measurements = self.buffer.get_pending(limit=limit)
     
-    for i, s in buffer_samples:
+    for i, m in buffer_measurements:
       try:
-        point = self.create_point(s)
+        point = self.create_point(m)
         self.write_api.write(bucket=self.bucket, record=point)
         self.buffer.mark_processed(i)
       except Exception as e:
-        print(f'Error processinng buffered sample {sample_id}: {e}')
+        print(f'Error processing buffered measurement {i}: {e}')
         break
-    
