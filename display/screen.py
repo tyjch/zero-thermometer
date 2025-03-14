@@ -6,6 +6,7 @@ from typing import Optional, Tuple, Dict, Any
 from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
 from layers.temperature import TemperatureLayer
+from layers.wifi import WifiLayer
 from pprint import pprint
 
 class Screen:
@@ -39,9 +40,6 @@ class Screen:
     
     self.draw = ImageDraw.Draw(self.image)
     
-    # Log the dimensions for debugging
-    logger.debug(f"Display dimensions: {self.display.width}x{self.display.height}")
-    logger.debug(f"Image dimensions: {self.image.width}x{self.image.height}")
   
   def clear(self, fill_color=(0,0,0)):
     self.draw.rectangle(
@@ -49,32 +47,27 @@ class Screen:
       fill = fill_color
     )
     
-    # Upper Bar
-    self.draw.rectangle(
-      (0, 0, 320, 60),
-      fill = (255, 0, 0)
-    )
-    # Temperature
-    self.draw.rectangle(
-      (0, 60, 320, 180),
-      fill = (0, 0, 0)
-    )
-    # Lower Bar
-    self.draw.rectangle(
-      (0, 240-60, 320, 240),
-      fill = (0, 0, 255),
-    )
+    # # Upper Bar
+    # self.draw.rectangle(
+    #   (0, 0, 320, 50),
+    #   fill = (255, 0, 0)
+    # )
+    # # Temperature
+    # self.draw.rectangle(
+    #   (0, 50, 320, 180),
+    #   fill = (0, 0, 0)
+    # )
+    # # Lower Bar
+    # self.draw.rectangle(
+    #   (0, 240-50, 320, 240),
+    #   fill = (0, 0, 255),
+    # )
   
   def show(self):
     try:
       # Don't rotate the image - the display already handles this
       self.display.image(self.image)
     except Exception as e:
-      logger.error(f'Error in screen.show(): {e}')
-      logger.debug(f'display: {self.display.width}x{self.display.height}')
-      logger.debug(f'image: {self.image.width}x{self.image.height}')
-      logger.debug(f'display rotation: {self.display.rotation}')
-      self.save()
       raise e
     
   def refresh(self, data):
@@ -100,7 +93,8 @@ class Screen:
 
 if __name__ == '__main__':
   temp_layer = TemperatureLayer()
-  s = Screen(layers=[temp_layer])
+  wifi_layer = WifiLayer()
+  s = Screen(layers=[temp_layer, wifi_layer])
   
   d = {
     'fahrenheit' : 97.5

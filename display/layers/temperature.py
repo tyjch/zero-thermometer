@@ -8,7 +8,8 @@ class TemperatureLayer(Layer):
     super().__init__(font_size=64)
     self.unit_symbol = "°F"
   
-  def update(self, draw, data:dict):
+  def update(self, image, data:dict):
+    draw = ImageDraw.Draw(image)
     if 'fahrenheit' in data.keys():
       text = f'{data.get("fahrenheit", 0.0):.1f} {self.unit_symbol}'
       draw.text(
