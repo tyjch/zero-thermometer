@@ -11,11 +11,19 @@ from sampler import Sampler
 from clients.influx import InfluxClient
 from clients.buffer import MeasurementBuffer
 from display.screen import Screen
+from display.layers.temperature import TemperatureLayer
+from display.layers.wifi import WifiLayer
 
 load_dotenv()
 
+
 async def main():
-  screen  = Screen()
+  last_temp  = 0.0
+  
+  temp_layer = TemperatureLayer()
+  wifi_layer = WifiLayer()
+  screen     = Screen(layers=[temp_layer, wifi_layer])
+  
   buffer  = MeasurementBuffer()
   influx  = InfluxClient(
     url    = os.getenv('INFLUX_URL'),
@@ -33,6 +41,9 @@ async def main():
   while True:
     measurements = await sampler.get_measurements()
     for m in measurements:
+      pprint(m)
+      if m.sensor_name == 'DS18B20':
+        screen.refresh(data={'fahrenheit':m.value})
       try:
         influx.insert_point(m)
       except Exception as e:
