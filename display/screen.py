@@ -5,8 +5,8 @@ import adafruit_rgb_display.ili9341 as ili9341
 from typing import Optional, Tuple, Dict, Any
 from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
-from layers.temperature import TemperatureLayer
-from layers.wifi import WifiLayer
+from .layers.temperature import TemperatureLayer
+from .layers.wifi import WifiLayer
 from pprint import pprint
 
 class Screen:
@@ -73,7 +73,7 @@ class Screen:
   def refresh(self, data):
     self.clear()
     for layer in self.layers:
-      layer.update(self.draw, data=data)
+      layer.update(self.image, data=data)
     self.show()
   
   def save(self):
@@ -100,8 +100,6 @@ if __name__ == '__main__':
     'fahrenheit' : 97.5
   }
   
-  try:
-    s.refresh(data=d)
-    time.sleep(1)  
-  except Exception as e:
-    logger.error(f"Error in main: {e}")
+  s.refresh(data=d)
+  time.sleep(1)  
+  
