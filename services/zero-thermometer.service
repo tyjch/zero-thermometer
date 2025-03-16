@@ -1,0 +1,14 @@
+[Unit]
+Description=Zero Thermometer Service
+After=network.target
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=$REPO_DIR
+ExecStart=$REPO_DIR/venv/bin/python $REPO_DIR/main.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
