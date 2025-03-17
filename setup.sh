@@ -1,107 +1,98 @@
 #!/bin/bash
+# setup.sh - Main installer for Zero Thermometer project
+# This script coordinates the installation of different components
 
-# setup.sh - Automated setup script for Zero Thermometer project
-# This script configures a Raspberry Pi Zero 2 W with all necessary dependencies
-# to run the zero-thermometer application
+set -e  # Exit on error
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Get current user
+CURRENT_USER=$(who am i | awk '{print $1}')
+[ "$CURRENT_USER" = "" ] && CURRENT_USER=$(whoami)
+
+# Set installation directory
+INSTALL_DIR=${INSTALL_DIR:-"/home/$CURRENT_USER/zero-thermometer"}
+
+# Export for child scripts
+export INSTALL_DIR
 
 echo "Starting Zero Thermometer setup..."
 
-# Update and install required packages
-echo "Updating package lists..."
-sudo apt update
+# Source utility functions
+source "$SCRIPT_DIR/scripts/utils.sh"
 
-echo "Installing required packages..."
-sudo apt install -y \
-  git \
-  python3-virtualenv \
-  fonts-dejavu \
-  python3-pip \
-  python3-setuptools \
-  python3-dev \
-  python3-smbus \
-  python3-rpi.gpio
+# Create scripts directory if running from repo root
+mkdir -p "$SCRIPT_DIR/scripts"
 
-# Enable required interfaces
-echo "Enabling I2C, SPI, and 1-Wire interfaces..."
+# Check if running as root or with sudo
+check_sudo
 
-# Check if config.txt exists in /boot/firmware/ (newer Raspberry Pi OS) or /boot/ (older versions)
-if [ -f /boot/firmware/config.txt ]; then
-  CONFIG_PATH="/boot/firmware/config.txt"
+# Show current configuration
+echo "=== Zero Thermometer Installation ==="
+echo "Current configuration:"
+echo "- Installation directory: $INSTALL_DIR"
+echo "- User: $CURRENT_USER"
+if is_raspberry_pi; then
+  echo "- Hardware: $(detect_pi_model)"
 else
-  CONFIG_PATH="/boot/config.txt"
+  echo "- Hardware: Not a Raspberry Pi (some features might not work)"
+fi
+echo ""
+
+# Prompt to change settings
+read -p "Would you like to change these settings? [y/N]: " change_settings
+if [[ "$change_settings" =~ ^[Yy]$ ]]; then
+  read -p "Installation directory [$INSTALL_DIR]: " custom_dir
+  INSTALL_DIR=${custom_dir:-$INSTALL_DIR}
+  export INSTALL_DIR
+  
+  # Only ask about current user if running as root or sudo
+  if [ "$EUID" -eq 0 ]; then
+    read -p "User to run services [$CURRENT_USER]: " custom_user
+    CURRENT_USER=${custom_user:-$CURRENT_USER}
+    export CURRENT_USER
+  fi
 fi
 
-# Enable I2C
-if ! grep -q "^dtparam=i2c_arm=on" $CONFIG_PATH; then
-  echo "dtparam=i2c_arm=on" | sudo tee -a $CONFIG_PATH
-fi
+echo ""
+echo "What components would you like to install?"
+echo "1) Core system dependencies"
+echo "2) Raspberry Pi interfaces (I2C, SPI, 1-Wire)"
+echo "3) Zero Thermometer application"
+echo "4) GitHub Actions Runner"
+echo "5) All of the above"
+echo "6) Exit"
+read -p "Enter your choice [5]: " choice
+choice=${choice:-5}  # Default to option 5
 
-# Enable SPI
-if ! grep -q "^dtparam=spi=on" $CONFIG_PATH; then
-  echo "dtparam=spi=on" | sudo tee -a $CONFIG_PATH
-fi
+case $choice in
+  1)
+    bash "$SCRIPT_DIR/scripts/install_dependencies.sh"
+    ;;
+  2)
+    bash "$SCRIPT_DIR/scripts/setup_interfaces.sh"
+    ;;
+  3)
+    bash "$SCRIPT_DIR/scripts/install_app.sh"
+    ;;
+  4)
+    bash "$SCRIPT_DIR/scripts/install_github_runner.sh"
+    ;;
+  5)
+    echo "Installing all components..."
+    bash "$SCRIPT_DIR/scripts/install_dependencies.sh"
+    bash "$SCRIPT_DIR/scripts/setup_interfaces.sh"
+    bash "$SCRIPT_DIR/scripts/install_app.sh"
+    bash "$SCRIPT_DIR/scripts/install_github_runner.sh"
+    ;;
+  6)
+    echo "Exiting setup."
+    exit 0
+    ;;
+  *)
+    echo "Invalid option. Exiting."
+    exit 1
+    ;;
+esac
 
-# Enable 1-Wire GPIO
-if ! grep -q "^dtoverlay=w1-gpio" $CONFIG_PATH; then
-  echo "dtoverlay=w1-gpio" | sudo tee -a $CONFIG_PATH
-fi
-
-# Load 1-Wire modules
-sudo modprobe w1-gpio
-sudo modprobe w1-therm
-
-# Add modules to /etc/modules to load at boot
-if ! grep -q "w1-gpio" /etc/modules; then
-  echo "w1-gpio" | sudo tee -a /etc/modules
-fi
-
-if ! grep -q "w1-therm" /etc/modules; then
-  echo "w1-therm" | sudo tee -a /etc/modules
-fi
-
-# Clone the repository if it doesn't exist
-REPO_DIR="/home/admin/zero-thermometer"
-if [ ! -d "$REPO_DIR" ]; then
-  echo "Cloning repository..."
-  git clone https://github.com/tyjch/zero-thermometer.git $REPO_DIR
-else
-  echo "Repository already exists. Pulling latest changes..."
-  cd $REPO_DIR
-  git pull
-fi
-
-# Setup virtual environment
-cd $REPO_DIR
-echo "Setting up virtual environment..."
-python3 -m virtualenv venv
-source venv/bin/activate
-
-# Install Python dependencies
-echo "Installing Python dependencies..."
-pip install -r requirements.txt
-
-# Create systemd service for autostarting the application
-echo "Creating systemd service..."
-cat << EOF | sudo tee /etc/systemd/system/zero-thermometer.service
-[Unit]
-Description=Zero Thermometer Service
-After=network.target
-
-[Service]
-Type=simple
-User=admin
-WorkingDirectory=$REPO_DIR
-ExecStart=$REPO_DIR/venv/bin/python $REPO_DIR/main.py
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Enable and start the service
-echo "Enabling and starting the service..."
-sudo systemctl enable zero-thermometer.service
-sudo systemctl start zero-thermometer.service
-
-echo "Setup complete! The Zero Thermometer service is now running."
+echo "Setup completed successfully!"
