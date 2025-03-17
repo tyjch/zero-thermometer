@@ -1,0 +1,1 @@
+sudo systemctl disable zero-thermometer.service

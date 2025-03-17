@@ -5,10 +5,11 @@ After=network.target
 [Service]
 Type=simple
 User=admin
-WorkingDirectory=$REPO_DIR
-ExecStart=$REPO_DIR/venv/bin/python $REPO_DIR/main.py
+WorkingDirectory=/home/admin/zero-thermometer
+ExecStart=/home/admin/zero-thermometer/venv/bin/python /home/admin/zero-thermometer/main.py
 Restart=on-failure
 RestartSec=10
+Environment=PYTHONUNBUFFERED=1
 
 [Install]
 WantedBy=multi-user.target
