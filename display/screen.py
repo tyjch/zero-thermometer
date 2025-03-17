@@ -12,6 +12,7 @@ from pprint import pprint
 class Screen:
   
   def __init__(self, layers=None, rotation:int=270):
+    self.active   = False
     self.layers   = layers or []
     self.rotation = rotation
     self.display  = ili9341.ILI9341(
@@ -39,30 +40,19 @@ class Screen:
     )
     
     self.draw = ImageDraw.Draw(self.image)
+    self.startup()
     
-  
-  def clear(self, fill_color=(0,0,0)):
+  def clear(self, fill_color=(0, 0, 0)):
     self.draw.rectangle(
       (0, 0, self.image.width, self.image.height),
       fill = fill_color
     )
     
-    # # Upper Bar
-    # self.draw.rectangle(
-    #   (0, 0, 320, 50),
-    #   fill = (255, 0, 0)
-    # )
-    # # Temperature
-    # self.draw.rectangle(
-    #   (0, 50, 320, 180),
-    #   fill = (0, 0, 0)
-    # )
-    # # Lower Bar
-    # self.draw.rectangle(
-    #   (0, 240-50, 320, 240),
-    #   fill = (0, 0, 255),
-    # )
-  
+  def startup(self):
+    self.clear()
+    self.draw.text((320//2, 240//2), "Starting up...", fill=(255, 255, 255))
+    self.show()
+    
   def show(self):
     try:
       # Don't rotate the image - the display already handles this
@@ -89,7 +79,6 @@ class Screen:
     # For drawing purposes, use the image height
     return self.image.height
   
-
 
 if __name__ == '__main__':
   temp_layer = TemperatureLayer()
