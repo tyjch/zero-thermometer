@@ -18,8 +18,6 @@ load_dotenv()
 
 
 async def main():
-  last_temp  = 0.0
-  
   temp_layer = TemperatureLayer()
   wifi_layer = WifiLayer()
   screen     = Screen(layers=[temp_layer, wifi_layer])
@@ -41,9 +39,8 @@ async def main():
   while True:
     measurements = await sampler.get_measurements()
     for m in measurements:
-      pprint(m)
       if m.sensor_name == 'DS18B20':
-        screen.refresh(data={'fahrenheit':m.value})
+        screen.refresh(data={'fahrenheit': m.value})
       try:
         influx.insert_point(m)
       except Exception as e:
