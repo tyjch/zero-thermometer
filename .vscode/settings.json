@@ -8,13 +8,19 @@
   "python.testing.unittestEnabled"   : false,
   "python.testing.pytestEnabled"     : false,
   "files.exclude"                    : {
-    "system:/**": true,
-    "system:/wifi-manager.service": false,
-    "system:/zero-thermometer.service": false
+    "**/__pycache__"                   : true,
+    "**/.pytest_cache"                 : true,
+    "**/measurement_buffer.db"         : true,
+    "**/venv"                          : true,
+    "system:/**"                       : true,
+    "system:/wifi-manager.service"     : false,
+    "system:/zero-thermometer.service" : false
   },
   "python.terminal.executeInFileDir" : false,
   "python.envFile"                   : "${workspaceFolder}/.env",
   "terminal.integrated.env.linux"    : {
       "PYTHONPATH": "${workspaceFolder}"
   },
+  "python.defaultInterpreterPath"       : "${workspaceFolder}/venv/bin/python", 
+  "python.terminal.activateEnvironment" : true
 }

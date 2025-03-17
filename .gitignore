@@ -6,7 +6,7 @@ measurement_buffer.db
 
 # Folders
 # .github/
-.vscode/
+# .vscode/
 # clients/
 # display/
 # logs/
@@ -14,8 +14,8 @@ measurement_buffer.db
 #tests/
 
 # Files
-logs/zero-thermometer.log
-todo.md
+logs/*
+# todo.md
 .env
 # setup.sh
 # requirements.txt
