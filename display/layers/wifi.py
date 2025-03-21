@@ -65,9 +65,7 @@ class WifiLayer(Layer):
           font   = self.font,
           fill   = self.foreground,
           anchor = 'lb'
-        )
-        
-      
+        )   
   
   @property  
   def quality(self):
