@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
 from .layers.temperature import TemperatureLayer
 from .layers.wifi import WifiLayer
+from .layers.menu import MenuLayer
 from pprint import pprint
 
 class Screen:
@@ -83,12 +84,13 @@ class Screen:
 if __name__ == '__main__':
   temp_layer = TemperatureLayer()
   wifi_layer = WifiLayer()
-  s = Screen(layers=[temp_layer, wifi_layer])
+  menu_layer = MenuLayer()
+  s = Screen(layers=[temp_layer, wifi_layer, menu_layer])
   
   d = {
     'fahrenheit' : 97.5
   }
   
   s.refresh(data=d)
-  time.sleep(1)  
+  time.sleep(1)
   
