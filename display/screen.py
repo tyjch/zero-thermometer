@@ -8,7 +8,7 @@ from loguru import logger
 from .layers.temperature import TemperatureLayer
 from .layers.wifi import WifiLayer
 from .layers.menu import MenuLayer
-from pprint import pprint
+
 
 class Screen:
   
@@ -41,6 +41,8 @@ class Screen:
     )
     
     self.draw = ImageDraw.Draw(self.image)
+    self.font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
+    
     self.startup()
     
   def clear(self, fill_color=(0, 0, 0)):
@@ -51,7 +53,13 @@ class Screen:
     
   def startup(self):
     self.clear()
-    self.draw.text((320//2, 240//2), "Starting up...", fill=(255, 255, 255))
+    self.draw.text(
+      (320//2, 240//2), 
+      "Starting up...", 
+      font   = self.font,
+      anchor = 'mm',
+      fill   = (150, 150, 150)
+    )
     self.show()
     
   def show(self):
@@ -61,11 +69,14 @@ class Screen:
     except Exception as e:
       raise e
     
-  def refresh(self, data):
+  def refresh(self, state):
     self.clear()
     for layer in self.layers:
-      layer.update(self.image, data=data)
+      new_state = layer.update(self.image, state=state)
+      if new_state:
+        state = new_state
     self.show()
+    return state
   
   def save(self):
     self.image.save('my_screen.png')
@@ -79,18 +90,4 @@ class Screen:
   def height(self) -> int:
     # For drawing purposes, use the image height
     return self.image.height
-  
-
-if __name__ == '__main__':
-  temp_layer = TemperatureLayer()
-  wifi_layer = WifiLayer()
-  menu_layer = MenuLayer()
-  s = Screen(layers=[temp_layer, wifi_layer, menu_layer])
-  
-  d = {
-    'fahrenheit' : 97.5
-  }
-  
-  s.refresh(data=d)
-  time.sleep(1)
   

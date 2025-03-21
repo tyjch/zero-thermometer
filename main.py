@@ -34,20 +34,26 @@ async def main():
   )
   
   sampler = Sampler(
-    sensors    = [DS18B20(), SHT41(), RaspberryPi()],
+    sensors    = [DS18B20()], #, SHT41(), RaspberryPi()],
     dimensions = ['temperature', 'relative_humidity', 'cpu_load', 'cpu_temp']
   )
   
+  state = {'fahrenheit': 0.0, 'bias': 0.0}
   while True:
     measurements = await sampler.get_measurements()
     for m in measurements:
       if m.sensor_name == 'DS18B20':
-        screen.refresh(data={'fahrenheit': m.value})
+        state['fahrenheit'] = m.value
+        new_state = screen.refresh(state=state)
+        if new_state:
+          state = new_state
+          logger.debug(f'State changed to: {state}')
       try:
         influx.insert_point(m)
       except Exception as e:
         logger.error(e)
         raise e
+    #break
 
 if __name__ == '__main__':
   asyncio.run(main())

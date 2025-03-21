@@ -15,8 +15,10 @@ class WifiLayer(Layer):
   def load_icons(self):
     base_dir = path.dirname(path.abspath(__file__))
     icon_dir = path.join(base_dir, 'assets')
+    
     for strength in range(5):
       icon_path = path.join(icon_dir, f'wifi_{strength}.png')
+      
       if path.exists(icon_path):
         icon = Image.open(icon_path).convert('RGBA')
         icon = self._resize_icon(icon)
@@ -24,12 +26,12 @@ class WifiLayer(Layer):
         # Recolor the icon
         pixel_data = icon.load()
         w, h = icon.size
-        for y in range(h):  # Fixed: use h directly, not icon.size[h]
-          for x in range(w):  # Fixed: use w directly, not icon.size[w]
+        for y in range(h):  
+          for x in range(w):  
             if pixel_data[x, y][3] > 0:
               pixel_data[x, y] = self.foreground + (pixel_data[x, y][3],)  # Preserve transparency
 
-        self.icons[strength] = icon  # Fixed: use icon instead of undefined recolored_icon
+        self.icons[strength] = icon 
          
   def _resize_icon(self, icon, desired_height=40):
     width, height = icon.size
@@ -37,18 +39,15 @@ class WifiLayer(Layer):
     resized_icon = icon.resize((resized_width, desired_height), Image.LANCZOS)
     return resized_icon  # Fixed: add return statement
   
-  def update(self, image, data:dict):
+  def update(self, image, state:dict):
     if self.visible:
       strength = self.strength
       if strength in self.icons and self.icons[strength]:  # Fixed: check if key exists and icon is not None
         icon = self.icons[strength]
         image.paste(icon, (4, 0), icon)
-        
       draw = ImageDraw.Draw(image)
-      ssid = self.ssid
-      ip_address = self.ip
-      print(self.ip)
       
+      ssid = self.ssid
       if ssid:
         draw.text(
           (45, 29),
@@ -57,7 +56,9 @@ class WifiLayer(Layer):
           fill   = self.foreground,
           anchor = 'lb' 
         )
-        
+        #logger.debug(f'ssid color: {self.foreground}')
+      
+      ip_address = self.ip
       if ip_address:
         draw.text(
           (10, 220),
@@ -65,7 +66,8 @@ class WifiLayer(Layer):
           font   = self.font,
           fill   = self.foreground,
           anchor = 'lb'
-        )   
+        )
+        #logger.debug(f'ip color: {self.foreground}')
   
   @property  
   def quality(self):

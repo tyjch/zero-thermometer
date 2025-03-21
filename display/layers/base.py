@@ -21,8 +21,8 @@ class Layer(ABC):
     except IOError:
       self.font = ImageFont.load_default()
   
-  # @abstractmethod
-  # def update(display, data:dict):
-  #   pass
+  @abstractmethod
+  def update(self, image, state:dict):
+    pass
   
   

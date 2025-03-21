@@ -17,10 +17,10 @@ class MenuLayer(Layer):
     
     # Button setup using DigitalIO
     self.buttons = {
-      'menu': self._setup_button(board.D27),
-      'power': self._setup_button(board.D17),
-      'minus': self._setup_button(board.D22),
-      'plus': self._setup_button(board.D23)
+      'menu'  : self._setup_button(board.D27),
+      'power' : self._setup_button(board.D17),
+      'minus' : self._setup_button(board.D22),
+      'plus'  : self._setup_button(board.D23)
     }
   
   def _setup_button(self, pin):
