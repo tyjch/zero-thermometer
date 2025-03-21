@@ -91,7 +91,7 @@ class Sensor(ABC):
     return measurables
 
   def create_measurement(self, quantity:Quantity, override_dimension:Optional[str]=None):
-    logger.debug('Creating measurement')
+    #logger.debug('Creating measurement')
     quantity   = quantity.to_preferred(self.preferred_units)
     dimensions = list(quantity.dimensionality.keys())
     

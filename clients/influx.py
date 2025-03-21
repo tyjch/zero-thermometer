@@ -48,7 +48,6 @@ class InfluxClient:
       try:
         point = self.create_point(measurement)
         self.write_api.write(bucket=self.bucket, record=point)
-        print(f"Wrote {measurement.dimension} measurement to Influx API")
         return True
       except Exception as e:
         print(e)

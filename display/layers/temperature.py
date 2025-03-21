@@ -53,7 +53,7 @@ class TemperatureLayer(Layer):
       else:
         temperature_status = status
         break
-    logger.debug(f'value: {value:.2f}, state: {temperature_status}')
+    #logger.debug(f'value: {value:.2f}, state: {temperature_status}')
     return temperature_status
   
   def update(self, image, state:dict) -> None:

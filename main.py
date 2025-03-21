@@ -15,14 +15,13 @@ from display.layers.temperature import TemperatureLayer
 from display.layers.wifi import WifiLayer
 from display.layers.menu import MenuLayer
 
-
 load_dotenv()
 
 async def main():
   temp_layer = TemperatureLayer()
   wifi_layer = WifiLayer()
   menu_layer = MenuLayer()
-  screen     = Screen(layers=[temp_layer, wifi_layer])
+  screen     = Screen(layers=[temp_layer, wifi_layer, menu_layer])
   
   buffer = MeasurementBuffer()
   influx = InfluxClient(
@@ -38,16 +37,23 @@ async def main():
     dimensions = ['temperature', 'relative_humidity', 'cpu_load', 'cpu_temp']
   )
   
-  state = {'fahrenheit': 0.0, 'bias': 0.0}
+  state = {
+    'fahrenheit' : 0.0, 
+    'bias'       : 0.0
+  }
+  
   while True:
     measurements = await sampler.get_measurements()
+    
     for m in measurements:
       if m.sensor_name == 'DS18B20':
         state['fahrenheit'] = m.value
+        
         new_state = screen.refresh(state=state)
         if new_state:
-          state = new_state
-          logger.debug(f'State changed to: {state}')
+          state.update(new_state)
+          logger.debug(f'State updated to: {state}')
+          
       try:
         influx.insert_point(m)
       except Exception as e:
