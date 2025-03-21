@@ -10,8 +10,8 @@
   "files.exclude"                    : {
     "**/__pycache__"                   : true,
     "**/.pytest_cache"                 : true,
-    "**/measurement_buffer.db"         : true,
-    "**/venv"                          : true,
+    "**/measurement_buffer.db"         : false,
+    "**/venv"                          : false,
     "system:/**"                       : true,
     "system:/wifi-manager.service"     : false,
     "system:/zero-thermometer.service" : false
