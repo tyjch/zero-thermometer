@@ -63,11 +63,15 @@ def enable_1wire():
     # Add dtoverlay for 1-Wire to config.txt
     utils.run_command("echo 'dtoverlay=w1-gpio' >> /boot/config.txt")
     
-    # Load 1-Wire kernel modules
+    # Load 1-Wire kernel modules for current session
     utils.run_command("modprobe w1-gpio")
     utils.run_command("modprobe w1-therm")
-    utils.run_command("echo 'w1-gpio' >> /etc/modules")
-    utils.run_command("echo 'w1-therm' >> /etc/modules")
+    
+    # Add to /etc/modules for automatic loading at boot
+    if "w1-gpio" not in utils.run_command("cat /etc/modules", check=False):
+        utils.run_command("echo 'w1-gpio' >> /etc/modules")
+    if "w1-therm" not in utils.run_command("cat /etc/modules", check=False):
+        utils.run_command("echo 'w1-therm' >> /etc/modules")
     
     print("1-Wire interface enabled successfully.")
 

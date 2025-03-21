@@ -28,15 +28,13 @@ def install_system_packages():
     
     # Install required packages
     packages = [
-        "python3-pip",
         "python3-venv",
         "python3-dev",
-        "python3-setuptools",
-        "libjpeg-dev",
-        "zlib1g-dev",
-        "libopenjp2-7",
-        "libtiff5",
-        "libatlas-base-dev",
+        # "libjpeg-dev",
+        # "zlib1g-dev",
+        # "libopenjp2-7",
+        # "libtiff-dev",
+        # "libatlas-base-dev",
         "i2c-tools",
         "git"
     ]
