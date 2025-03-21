@@ -19,6 +19,7 @@
 - Button to turn off Pi gracefully
 - Buttons to adjust bias
 - Poll DS18B20 sensor frequently but only send updates to Influx every so often
+- Implement flashing screen
 
 ## 3D Printing
 - New case with SI7021 sensor exposed
