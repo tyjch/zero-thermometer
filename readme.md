@@ -18,6 +18,15 @@ sudo apt-get install git
 git config --global user.name "tyjch"
 git config --global user.email "tyjchurchill@gmail.com"
 ```
+## Optional: Install NTP to sync current datetime
+```
+sudo apt-get update
+sudo apt-get install ntp
+# sudo nano /etc/ntp.conf
+sudo systemctl enable ntp
+```
+```
+sudo systemctl enable systemd-timesyncd
 
 ## Clone Repository
 ```shell
