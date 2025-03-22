@@ -12,17 +12,28 @@
 - ~~Button to turn off Pi gracefully~~
 - ~~Buttons to adjust bias~~
 - ~~Check measurement_buffer.db~~
+- ~~Store bias in Influx~~
+- ~~Setup Raspberry Pi Connect~~
+
 ## Open
 - Optimize code to start up faster
 - Script changes to /boot/firmware/config.txt don't seem correct
 - Add modprobe w1-gpio and modprobe w1-therm on boot with `echo -e "w1-gpio\nw1-therm" | sudo tee -a /etc/modules`
-- Make start up and shutdown layers for screen
-- Setup Raspberry Pi Connect
+- Make shutdown layers for screen
 - Use buttons to mark connected/disconnected ground state
 - Poll DS18B20 sensor frequently but only send updates to Influx every so often
 - Implement flashing screen
-- Store bias in Influx
 - Refresh screen separately from sensor polling
+- **Turn on service again**
+- Load bias on start
+
+
+
+
+
+
+
+
 
 
 

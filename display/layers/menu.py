@@ -17,6 +17,7 @@ class MenuLayer(Layer):
     
     self.bias      = 0.0
     self.step_size = 0.1
+    self.should_shutdown = False
     
     self.buttons = {
       'menu'  : Button(pin=27),
@@ -68,8 +69,10 @@ class MenuLayer(Layer):
   def shutdown(self):
     if self.active:
       logger.debug('Button pressed: (Power)')
-      for name, button in self.buttons:
+      for button in self.buttons.values():
         button.close()
+      self.should_shutdown = True
+      
       
   
   def update(self, image, state:dict):
@@ -92,4 +95,6 @@ class MenuLayer(Layer):
           x -= 91
 
     state['bias'] = round(self.bias, 2)
+    if self.should_shutdown:
+      state['shutdown'] = True
     return state

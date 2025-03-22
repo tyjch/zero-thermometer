@@ -42,7 +42,8 @@ sampler = Sampler(
 async def main():
   state = {
     'fahrenheit' : 0.0, 
-    'bias'       : 0.0
+    'bias'       : 0.0,
+    'shutdown'   : False
   }
   
   last_bias = 0.0
