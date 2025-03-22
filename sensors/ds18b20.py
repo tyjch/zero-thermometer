@@ -18,7 +18,7 @@ class DS18B20(Sensor):
   def id(self):
     return self._id
   
-  @Measurable(frequency=3)
+  @Measurable(frequency=1)
   async def temperature(self) -> Measurement:
     quantity = Quantity(await self._temperature(), units.celsius)
     return self.create_measurement(quantity=quantity)
