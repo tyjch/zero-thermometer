@@ -59,10 +59,11 @@ class TemperatureLayer(Layer):
   def update(self, image, state:dict) -> None:
     draw = ImageDraw.Draw(image)
     if 'fahrenheit' in state.keys():
-      value  = state.get("fahrenheit", 0.0)
-      status = self.get_temperature_status(value)
+      sensor_value  = state.get("fahrenheit", 0.0)
+      display_value = sensor_value + state.get('bias', 0.0)
+      status = self.get_temperature_status(display_value)
       color  = temperature_ranges[status]['color']
-      text   = f'{state.get("fahrenheit", 0.0):.1f}{self.unit_symbol}'
+      text   = f'{display_value:.1f}{self.unit_symbol}'
       draw.text(
         (320//2, 240//2),
         text,
