@@ -1,40 +1,45 @@
 import asyncio
 from os import path
 import board
-import digitalio
 from .base import Layer
 from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
-from ..button import Button
+from gpiozero import Button, ButtonBoard
+
 
 class MenuLayer(Layer):
   
   def __init__(self):
     super().__init__(font_size=20, anchor='rb', foreground=(150, 150, 150))
-    self.visible = False
+    self.active  = True
     self.icons   = {}
     self.load_icons()
     
+    self.bias      = 0.0
+    self.step_size = 0.1
+    
     self.buttons = {
-      'menu'  : Button(name='menu',  pin=27),
-      'power' : Button(name='power', pin=17),
-      'minus' : Button(name='minus', pin=22),
-      'plus'  : Button(name='plus',  pin=23)
+      'menu'  : Button(pin=27),
+      'power' : Button(pin=17),
+      'minus' : Button(pin=22),
+      'plus'  : Button(pin=23)
     }
     
-    for b in self.buttons.values():
-      b.add_callback(lambda n: logger.debug(n))
+    self.buttons['menu'].when_activated  = self.toggle_menu
+    self.buttons['power'].when_activated = self.shutdown
+    self.buttons['minus'].when_activated = self.decrease_bias
+    self.buttons['plus'].when_activated  = self.increase_bias
     
-    
+  
   def load_icons(self):
     base_dir = path.dirname(path.abspath(__file__))
     icon_dir = path.join(base_dir, 'assets')
     
-    for name in ['menu', 'minus', 'plus', 'power']:
+    for name in ['close', 'menu', 'minus', 'plus', 'power']:
       icon_path = path.join(icon_dir, f'{name}.png')
       if path.exists(icon_path):
         icon = Image.open(icon_path).convert('RGBA')
-        icon = self._resize_icon(icon)
+        icon = self._resize_icon(icon, desired_height=32)
         
         pixel_data = icon.load()
         w, h = icon.size
@@ -45,35 +50,46 @@ class MenuLayer(Layer):
 
         self.icons[name] = icon
   
-  def update(self, image, state:dict):
-    if self.visible:
-      # Display the menu icons across the bottom of the screen
-      if 'menu' in self.icons:
-        icon = self.icons['menu']
-        image.paste(icon, (10, 240 - icon.height - 10), icon)
-      
-      if 'minus' in self.icons:
-        icon = self.icons['minus']
-        image.paste(icon, (90, 240 - icon.height - 10), icon)
-      
-      if 'plus' in self.icons:
-        icon = self.icons['plus']
-        image.paste(icon, (170, 240 - icon.height - 10), icon)
-      
-      if 'power' in self.icons:
-        icon = self.icons['power']
-        image.paste(icon, (250, 240 - icon.height - 10), icon)
-      
-      # Display bias value
-      draw = ImageDraw.Draw(image)
-      draw.text(
-        (160, 140),
-        f"Bias: {self.bias:.1f}",
-        font=self.font,
-        fill=self.foreground,
-        anchor='mm'
-      )
+  def toggle_menu(self):
+    logger.debug('Button pressed: (Menu)')
+    self.active = not self.active
+    logger.debug(f'Menu: {self.active}')
   
- 
+  def increase_bias(self):
+    if self.active:
+      logger.debug('Button pressed: (Plus)')
+      self.bias += self.step_size
+    
+  def decrease_bias(self):
+    if self.active:
+      logger.debug('Button pressed: (Minus)')
+      self.bias -= self.step_size
+  
+  def shutdown(self):
+    if self.active:
+      logger.debug('Button pressed: (Power)')
+      for name, button in self.buttons:
+        button.close()
+      
+  
+  def update(self, image, state:dict):
+    x, y = 280, 200
+    if self.visible:
+      if self.active:
+        active_icons = ['close', 'plus', 'minus', 'power']
+        draw = ImageDraw.Draw(image)
+        draw.rectangle(
+          (0, y, image.width, image.height),
+          fill=(0, 0, 0)
+        )
+      else:
+        active_icons = ['menu']
+      
+      for name in active_icons:
+        icon = self.icons.get(name)
+        if icon:
+          image.paste(icon, (x, y), icon)
+          x -= 91
 
-
+    state['bias'] = round(self.bias, 2)
+    return state
