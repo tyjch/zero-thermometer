@@ -1,15 +1,15 @@
 # clients/influx.py
 import os
 import asyncio
-from dataclasses import asdict
 from datetime import datetime
+from dataclasses import asdict
 from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import ASYNCHRONOUS
 from sensors.base import Measurement
 from .buffer import MeasurementBuffer
-
+from loguru import logger
 
 class InfluxClient:
   
@@ -43,7 +43,8 @@ class InfluxClient:
       
     return point
   
-  def insert_point(self, measurement:Measurement):
+  def insert_measurement(self, measurement:Measurement):
+    # TODO: Maybe only insert measurement if the value is different?
     if self.write_api:
       try:
         point = self.create_point(measurement)
@@ -54,7 +55,22 @@ class InfluxClient:
         self.buffer.insert(measurement)
     else:
       self.buffer.insert(measurement)
+  
+  def insert_bias(self, bias, measurement):
+    point = Point('Bias')
+    if measurement.timestamp:
+      point.time(int(measurement.timestamp.timestamp() * 1_000_000_000))
+    for t in ['dimension', 'unit', 'sensor_id']:
+      point.tag(t, getattr(measurement, t))
+    point.field("value", bias)
     
+    if self.write_api:
+      try:
+        self.write_api.write(bucket=self.bucket, record=point)
+        return True
+      except Exception as e:
+        logger.error(e)
+
   def process_buffer(self, limit:int=100):
     buffer_length = self.buffer.length
     buffer_measurements = self.buffer.get_pending(limit=limit)
