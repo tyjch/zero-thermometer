@@ -11,7 +11,7 @@ class MenuLayer(Layer):
   
   def __init__(self):
     super().__init__(font_size=20, anchor='rb', foreground=(150, 150, 150))
-    self.active  = True
+    self.active  = False
     self.icons   = {}
     self.load_icons()
     
