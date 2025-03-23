@@ -48,28 +48,28 @@ class RaspberryPi(Sensor):
     def id(self):
         return self._id
     
-    @Measurable(frequency=300)
+    @Measurable(frequency=5)
     async def cpu_load(self) -> Measurement:
         # Get CPU load as percentage (average over all cores)
         load = psutil.cpu_percent(interval=1)
         quantity = Quantity(load, units.percent)
         return self.create_measurement(quantity=quantity, override_dimension='cpu_load')
     
-    @Measurable(frequency=300)
+    @Measurable(frequency=5)
     async def memory_usage(self) -> Measurement:
         # Get memory usage as percentage
         memory = psutil.virtual_memory()
         quantity = Quantity(memory.percent, units.percent)
         return self.create_measurement(quantity=quantity, override_dimension='memory_usage')
     
-    @Measurable(frequency=300)
+    @Measurable(frequency=5)
     async def disk_usage(self) -> Measurement:
         # Get disk usage as percentage for root partition
         disk = psutil.disk_usage('/')
         quantity = Quantity(disk.percent, units.percent)
         return self.create_measurement(quantity=quantity, override_dimension='disk_usage')
     
-    @Measurable(frequency=300)
+    @Measurable(frequency=5)
     async def cpu_temp(self) -> Measurement:
         # Read CPU temperature from system file and convert to Fahrenheit
         try:
