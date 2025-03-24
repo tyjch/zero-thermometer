@@ -15,7 +15,7 @@
     "**/venv"                          : false,
     "**/clients"                       : false,
     "**/services"                      : true,
-    "**/scripts"                       : true,
+    "**/scripts"                       : false,
     "**/sensors"                       : false,
     "**/tests"                         : true,
     "**/assets"                        : false,
