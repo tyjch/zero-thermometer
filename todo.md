@@ -26,7 +26,7 @@
 - Refresh screen separately from sensor polling
 - **Turn on service again**
 - Load bias on start, save on close
-
+- Add user to netdev group so that it can scan for wifi connections `sudo usermod -a -G netdev admin`
 
 
 
