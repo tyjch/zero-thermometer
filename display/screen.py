@@ -85,7 +85,6 @@ class Screen:
     os.system('sudo shutdown -h +5 "Shutting down"')
     # threading.Thread(target=delayed_shutdown, daemon=True).start()
     
-    
   def show(self):
     try:
       # Don't rotate the image - the display already handles this

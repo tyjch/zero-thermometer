@@ -7,7 +7,7 @@ from typing import List, Optional
 from loguru import logger
 from sensors.base import Sensor, Measurement
 
-sampler_log = logger.bind(tag='sampler')
+sampler_log = logger.bind(tags=['sampler'])
 
 class Sampler:
   

@@ -12,7 +12,7 @@ from .buffer import MeasurementBuffer
 from loguru import logger
 
 
-influx_log = logger.bind(tag='sampler')
+influx_log = logger.bind(tags=['influx'])
 
 
 class InfluxClient:
@@ -36,6 +36,7 @@ class InfluxClient:
     self.buffer = buffer 
     
     if not all([self.url, self.token, self.org, self.bucket]):
+      influx_log.critical('Missing InfluxDB environment variables')
       raise ValueError("Missing InfluxDB environment variables")
     
     self.client = InfluxDBClient(url=self.url, token=self.token, org=self.org)
@@ -68,13 +69,10 @@ class InfluxClient:
     
     if measurement.timestamp:
       point.time(int(measurement.timestamp.timestamp() * 1_000_000_000))
-    
-    # Add tags for efficient querying
-    tags = ['dimension', 'unit', 'sensor_id']
-    for t in tags:
+      
+    for t in ['dimension', 'unit', 'sensor_id']:
       point.tag(t, getattr(measurement, t))
-    
-    # Add the measurement value as a field
+      
     point.field("value", measurement.value)
     
     return point

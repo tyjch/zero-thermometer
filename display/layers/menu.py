@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
 from gpiozero import Button, ButtonBoard
 
-button_log = logger.bind(tag='button')
+button_log = logger.bind(tags=['button'])
 
 class MenuLayer(Layer):
   
@@ -53,9 +53,8 @@ class MenuLayer(Layer):
         self.icons[name] = icon
   
   def toggle_menu(self):
-    button_log.info('Button pressed: (Menu)')
     self.active = not self.active
-    logger.debug(f'Menu: {self.active}')
+    button_log.info(f'Button pressed: (Menu)')
   
   def increase_bias(self):
     if self.active:
