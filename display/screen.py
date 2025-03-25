@@ -28,9 +28,10 @@ class Screen:
       baudrate = 24000000,
       rotation = rotation
     )
+    
+    # TODO: Backlight not dimming
     self.backlight = PWMLED(18)
     
-    # When rotation is 90 or 270, we need to swap width and height for the image
     if rotation in (90, 270):
       img_width  = self.display.height
       img_height = self.display.width
@@ -38,7 +39,6 @@ class Screen:
       img_width  = self.display.width
       img_height = self.display.height
     
-    # Create image with the correct dimensions based on rotation
     self.image = Image.new(
       "RGB", 
       (img_width, img_height), 
@@ -66,6 +66,7 @@ class Screen:
       fill   = (150, 150, 150)
     )
     self.show()
+    # TODO: Backlight not dimming
     self.set_backlight(1.0)
   
   def shutdown(self):
@@ -105,6 +106,7 @@ class Screen:
     return state
   
   def set_backlight(self, value:float):
+    # TODO: Backlight not dimming
     value = max(0.0, min(1.0, value))
     self.backlight = value
     
