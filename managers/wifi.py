@@ -2,6 +2,7 @@ import subprocess
 from datetime import datetime
 from loguru import logger
 
+
 wifi_log = logger.bind(tags=['wifi'])
 
 class WifiManager:
@@ -142,11 +143,3 @@ class WifiManager:
       return "No IP"
     except Exception as e:
       return "No IP"
-    
-  
-  
-if __name__ == '__main__':
-  wm = WifiManager()
-  wifi_log.debug(wm.connections)
-  wifi_log.debug(wm.networks)
-  wifi_log.debug(wm.available_connections)
