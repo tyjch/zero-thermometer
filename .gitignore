@@ -19,5 +19,6 @@ measurement_buffer.db
 .env
 # setup.sh
 # requirements.txt
+.lgd-nfy0
 test_display.py
 my_screen.png
