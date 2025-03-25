@@ -41,15 +41,8 @@ class MenuLayer(Layer):
       icon_path = path.join(icon_dir, f'{name}.png')
       if path.exists(icon_path):
         icon = Image.open(icon_path).convert('RGBA')
-        icon = self._resize_icon(icon, desired_height=32)
-        
-        pixel_data = icon.load()
-        w, h = icon.size
-        for y in range(h):
-          for x in range(w):
-            if pixel_data[x, y][3] > 0:
-              pixel_data[x, y] = self.foreground + (pixel_data[x, y][3],)  # Preserve transparency
-
+        icon = self.resize_icon(icon, desired_height=32)
+        icon = self.recolor_icon(icon, desired_color=self.foreground)
         self.icons[name] = icon
   
   def toggle_menu(self):

@@ -25,10 +25,16 @@ class Layer(ABC):
   def update(self, image, state:dict):
     pass
   
-  # TODO: Add icon recoloring method
+  def recolor_icon(self, icon, desired_color):
+    pixel_data = icon.load()
+    w, h = icon.size
+    for y in range(h):
+      for x in range(w):
+        if pixel_data[x, y][3] > 0:
+          pixel_data[x, y] = desired_color + (pixel_data[x, y][3],)  # Preserve transparency
+    return icon
   
-  # TODO: Move this?
-  def _resize_icon(self, icon, desired_height=40):
+  def resize_icon(self, icon, desired_height):
     width, height = icon.size
     resized_width = int((desired_height/height)*width)
     resized_icon = icon.resize((resized_width, desired_height), Image.LANCZOS)

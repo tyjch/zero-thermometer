@@ -4,6 +4,7 @@ from .base import Layer
 from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
 
+wifi_log = logger.bind(tags=['wifi'])
 
 class WifiLayer(Layer):
   
@@ -11,6 +12,7 @@ class WifiLayer(Layer):
     super().__init__(font_size=20, anchor='lb', foreground=(150, 150, 150))
     self.icons = {}
     self.load_icons()
+    self.connection_index = 0
     
   def load_icons(self):
     base_dir = path.dirname(path.abspath(__file__))
@@ -21,28 +23,14 @@ class WifiLayer(Layer):
       
       if path.exists(icon_path):
         icon = Image.open(icon_path).convert('RGBA')
-        icon = self._resize_icon(icon)
-        
-        # Recolor the icon
-        pixel_data = icon.load()
-        w, h = icon.size
-        for y in range(h):  
-          for x in range(w):  
-            if pixel_data[x, y][3] > 0:
-              pixel_data[x, y] = self.foreground + (pixel_data[x, y][3],)  # Preserve transparency
-
+        icon = self.resize_icon(icon, desired_height=40)
+        icon = self.recolor_icon(icon, desired_color=self.foreground)
         self.icons[strength] = icon 
-         
-  def _resize_icon(self, icon, desired_height=40):
-    width, height = icon.size
-    resized_width = int((desired_height/height)*width)
-    resized_icon = icon.resize((resized_width, desired_height), Image.LANCZOS)
-    return resized_icon  # Fixed: add return statement
   
   def update(self, image, state:dict):
     if self.visible:
       strength = self.strength
-      if strength in self.icons and self.icons[strength]:  # Fixed: check if key exists and icon is not None
+      if strength in self.icons and self.icons[strength]:
         icon = self.icons[strength]
         image.paste(icon, (4, 0), icon)
       draw = ImageDraw.Draw(image)
@@ -68,8 +56,13 @@ class WifiLayer(Layer):
           anchor = 'lb'
         )
         #logger.debug(f'ip color: {self.foreground}')
+      
+      #available_networks = self.available_networks
+      #wifi_log.debug(f'{available_networks}')
+      available_connections = self.available_connections
+      wifi_log.debug(f'{available_connections}')
   
-  @property  
+  @property
   def quality(self):
     try:
       output = subprocess.check_output(
@@ -127,3 +120,114 @@ class WifiLayer(Layer):
       return "No IP"
     except Exception as e:
       return "No IP"
+  
+  def rescan_networks(self):
+    try:
+      subprocess.call("sudo nmcli device wifi rescan", shell=True, timeout=10)
+      wifi_log.success('Network scan successful with `sudo nmcli`')
+    except subprocess.TimeoutExpired:
+      wifi_log.error('Timed out')
+    except Exception:
+      wifi_log.error('Network scan failed with `sudo nmcli`')
+      try:
+        subprocess.call(
+          "nmcli device wifi rescan", 
+          shell   = True, 
+          timeout = 10
+        )
+        wifi_log.success('Network scan successful with `nmcli`')
+      except Exception:
+        wifi_log.error('Network scan failed with `nmcli`')
+  
+  @property
+  def networks(self):
+    self.rescan_networks()
+    # Try to get results using sudo
+    try:
+      try:
+        output = subprocess.check_output(
+          "sudo nmcli -t -f SSID device wifi list", 
+          shell = True
+        ).decode('utf-8')
+      except Exception:
+        wifi_log.error('Network listing failed with `sudo nmcli`')
+        output = subprocess.check_output(
+          "nmcli -t -f SSID device wifi list", 
+          shell=True
+        ).decode('utf-8')
+      
+      networks = []
+      for line in output.splitlines():
+        ssid = line.strip()
+        if ssid and ssid not in networks and ssid != "--":
+          networks.append(ssid)
+      
+      return networks
+    
+    except Exception as e:
+      wifi_log.error("Network listing failed: falling back to `iwlist`")
+      try:
+        output = subprocess.check_output(
+          "sudo iwlist wlan0 scan | grep -i essid", 
+          shell=True
+        ).decode('utf-8')
+        networks = []
+        for line in output.splitlines():
+          if "ESSID:" in line:
+            ssid = line.split('ESSID:"')[1].strip('"')
+            if ssid and ssid not in networks:
+              networks.append(ssid)
+        return networks
+      except Exception:
+        return []
+  
+  @property
+  def connections(self):
+    try:
+      output = subprocess.check_output(
+        "sudo nmcli -t -f NAME,TYPE,AUTOCONNECT,AUTOCONNECT-PRIORITY connection show", 
+        shell=True
+      ).decode('utf-8')
+      
+      connections = {}
+      for line in output.splitlines():
+        if not line.strip():
+          continue
+          
+        parts = line.strip().split(':')
+        if len(parts) >= 4 and parts[1] == '802-11-wireless':  # Only get WiFi connections
+          name = parts[0]
+          autoconnect = parts[2].lower() == 'yes'
+          try:
+            priority = int(parts[3])
+          except (ValueError, IndexError):
+            priority = 0
+            
+          # Get the SSID for this connection
+          try:
+            ssid_output = subprocess.check_output(
+              f"sudo nmcli -t -f 802-11-wireless.ssid connection show '{name}'", 
+              shell=True
+            ).decode('utf-8').strip()
+            
+            if ssid_output and ':' in ssid_output:
+              ssid = ssid_output.split(':', 1)[1].strip()
+              
+              connections[ssid] = {
+                'name': name,
+                'autoconnect': autoconnect,
+                'priority': priority
+              }
+          except Exception:
+            # Skip connections where we can't get the SSID
+            pass
+            
+      return connections
+    except Exception as e:
+      return {}
+  
+  @property
+  def available_connections(self):
+    networks    = self.networks
+    connections = self.connections.keys()
+    return [c for c in connections if c in networks]
