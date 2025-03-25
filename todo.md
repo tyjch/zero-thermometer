@@ -25,7 +25,7 @@
 - Implement flashing screen
 - Refresh screen separately from sensor polling
 - **Turn on service again**
-- Load bias on start
+- Load bias on start, save on close
 
 
 

@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 from pprint import pprint
 from dotenv import load_dotenv
@@ -35,42 +36,53 @@ influx = InfluxClient(
 )
 
 sampler = Sampler(
-  sensors    = [DS18B20()], #, SHT41(), RaspberryPi()],
+  sensors    = [DS18B20(), SHT41(), RaspberryPi()],
   dimensions = ['temperature', 'relative_humidity', 'cpu_load', 'cpu_temp']
 )
 
-async def main():
-  state = {
-    'fahrenheit' : 0.0, 
-    'bias'       : 0.0,
-    'shutdown'   : False
-  }
-  
-  last_bias = 0.0
-  
+
+async def poll_sensors(state, sampler, influx, sleep_seconds=1):
   while True:
     measurements = await sampler.get_measurements()
     for m in measurements:
       if m.sensor_name == 'DS18B20':
         state['fahrenheit'] = m.value
-        
-        new_state = screen.refresh(state=state)
-        if new_state:
-          state.update(new_state)
-          logger.debug(f'State updated to: {state}')
       try:
         influx.insert_measurement(m)
-        # Only log bias if it has changed
         current_bias = state['bias']
-        if last_bias != current_bias:
+        if state['last_bias'] != current_bias: # Only log bias if it has changed
           influx.insert_bias(current_bias, m)
-          last_bias = current_bias
+          state['last_bias'] = current_bias
       except Exception as e:
         logger.error(e)
         raise e
-    #break
+    await asyncio.sleep(sleep_seconds)
+
+async def refresh_screen(state, screen, sleep_seconds=0.1):
+  while True:
+    new_state = screen.refresh(state=state)
+    if new_state:
+      state.update(new_state)
+      logger.debug(f'State updated to: {state}')
+    await asyncio.sleep(sleep_seconds)
+      
+async def main():
+  state = {
+    'fahrenheit' : 0.0, 
+    'bias'       : 0.0,
+    'last_bias'  : 0.0,
+    'shutdown'   : False
+  }
+  
+  sensor_task = asyncio.create_task(poll_sensors(state, sampler, influx))
+  screen_task = asyncio.create_task(refresh_screen(state, screen))
+  
+  await asyncio.gather(sensor_task, screen_task)
+  
 
 if __name__ == '__main__':
+  logger.remove(0)
+  logger.add(sys.stderr, colorize=True, format="{time:MMMM D, YYYY > HH:mm:ss} | <lvl>{level}</lvl>: {message} | {extra}")
   asyncio.run(main())
   
 # Add atexit?

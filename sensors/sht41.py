@@ -14,12 +14,12 @@ class SHT41(Sensor):
   def id(self):
     return self._sensor.serial_number
   
-  @Measurable(frequency=5)
+  @Measurable(frequency=30)
   async def temperature(self) -> Measurement:
     quantity = Quantity(self._sensor.temperature, units.celsius)
     return self.create_measurement(quantity=quantity)
     
-  @Measurable(frequency=5)
+  @Measurable(frequency=30)
   async def relative_humidity(self) -> Measurement:
     try:
       quantity = Quantity(self._sensor.relative_humidity, units.percent)

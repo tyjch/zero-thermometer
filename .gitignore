@@ -14,7 +14,7 @@ measurement_buffer.db
 #tests/
 
 # Files
-logs/*
+# logs/*
 # todo.md
 .env
 # setup.sh

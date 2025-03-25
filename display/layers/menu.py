@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
 from gpiozero import Button, ButtonBoard
 
+button_log = logger.bind(tag='button')
 
 class MenuLayer(Layer):
   
@@ -52,29 +53,29 @@ class MenuLayer(Layer):
         self.icons[name] = icon
   
   def toggle_menu(self):
-    logger.debug('Button pressed: (Menu)')
+    button_log.info('Button pressed: (Menu)')
     self.active = not self.active
     logger.debug(f'Menu: {self.active}')
   
   def increase_bias(self):
     if self.active:
-      logger.debug('Button pressed: (Plus)')
+      button_log.info('Button pressed: (Plus)')
       self.bias += self.step_size
+      self.bias = round(self.bias, 2)
     
   def decrease_bias(self):
     if self.active:
-      logger.debug('Button pressed: (Minus)')
+      button_log.info('Button pressed: (Minus)')
       self.bias -= self.step_size
+      self.bias = round(self.bias, 2)
   
   def shutdown(self):
     if self.active:
-      logger.debug('Button pressed: (Power)')
+      button_log.info('Button pressed: (Power)')
       for button in self.buttons.values():
         button.close()
       self.should_shutdown = True
       
-      
-  
   def update(self, image, state:dict):
     x, y = 280, 200
     if self.visible:
@@ -94,7 +95,8 @@ class MenuLayer(Layer):
           image.paste(icon, (x, y), icon)
           x -= 91
 
-    state['bias'] = round(self.bias, 2)
+    state['bias'] = self.bias
     if self.should_shutdown:
+      button_log.info('Shutdown requested through shared state')
       state['shutdown'] = True
     return state
