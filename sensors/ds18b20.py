@@ -1,5 +1,4 @@
 import glob
-import board
 from pint import Quantity
 from .base import Sensor, Measurement, Measurable, units
 
