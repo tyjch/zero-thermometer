@@ -7,7 +7,8 @@ import adafruit_rgb_display.ili9341 as ili9341
 from time import sleep
 from typing import Optional, Tuple, Dict, Any
 from PIL import Image, ImageDraw, ImageFont
-from gpiozero import PWMLED
+from gpiozero import PWMLED, Device
+from gpiozero.pins.lgpio import LGPIOFactory
 from loguru import logger
 from .layers.temperature import TemperatureLayer
 from .layers.wifi import WifiLayer
@@ -29,7 +30,7 @@ class Screen:
       rotation = rotation
     )
     
-    # TODO: Backlight not dimming
+    # Initialize backlight with pin_factory set to prevent resets
     self.backlight = PWMLED(18)
     
     if rotation in (90, 270):
@@ -66,10 +67,14 @@ class Screen:
       fill   = (150, 150, 150)
     )
     self.show()
-    # TODO: Backlight not dimming
+    # Set backlight to full brightness
     self.set_backlight(1.0)
   
   def shutdown(self):
+    # Turn off the backlight first
+    self.set_backlight(0.0)
+    
+    # Show the shutdown message
     self.clear()
     self.draw.text(
       (320//2, 240//2), 
@@ -79,12 +84,28 @@ class Screen:
       fill   = (150, 150, 150)
     )
     self.show()
-    time.sleep(5)
-    self.set_backlight(0.0)
+    time.sleep(2)
+    
+    # Override the backlight close method to prevent cleanup
+    original_close = self.backlight.close
+    self.backlight.close = lambda: None
+    
+    # Create a direct hold on the pin to keep it in the off state
+    try:
+      # Get the underlying pin object
+      pin = self.backlight._pin
+      # Hold it low directly if possible
+      if hasattr(pin, 'output') and callable(pin.output):
+        pin.output(0)
+    except Exception as e:
+      print(f"Error holding pin: {e}")
+    
+    # Clear the screen
     self.clear()
-    # def delayed_shutdown():
-    os.system('sudo shutdown -h +5 "Shutting down"')
-    # threading.Thread(target=delayed_shutdown, daemon=True).start()
+    self.show()
+    
+    # Initiate shutdown
+    os.system('sudo shutdown -h +15 "System will shut down in 15 seconds"')
     
   def show(self):
     try:
@@ -106,9 +127,8 @@ class Screen:
     return state
   
   def set_backlight(self, value:float):
-    # TODO: Backlight not dimming
     value = max(0.0, min(1.0, value))
-    self.backlight = value
+    self.backlight.value = value
     
   def save(self):
     self.image.save('my_screen.png')

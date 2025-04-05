@@ -3,7 +3,7 @@ import sys
 import asyncio
 from dotenv import load_dotenv
 from loguru import logger
-from gpiozero import Device
+from gpiozero import Device, PWMLED
 from gpiozero.pins.lgpio import LGPIOFactory
 from sensors import Sensor, Measurement, DS18B20, SHT41, RaspberryPi
 from sampler import Sampler
@@ -39,6 +39,7 @@ screen = Screen()
 temp_layer = TemperatureLayer()
 wifi_layer = WifiLayer()
 menu_layer = MenuLayer()
+
 screen.layers = [
   temp_layer, 
   wifi_layer, 
@@ -112,22 +113,29 @@ async def main():
   sensor_task = asyncio.create_task(poll_sensors(state))
   screen_task = asyncio.create_task(refresh_screen(state, screen))
   
-  await asyncio.gather(sensor_task, screen_task)
+  # Create a task to watch for shutdown
+  async def shutdown_monitor():
+    while True:
+      if state.get('shutdown'):
+        # Cancel all other tasks
+        sensor_task.cancel()
+        screen_task.cancel()
+        return
+      await asyncio.sleep(0.1)
   
+  monitor_task = asyncio.create_task(shutdown_monitor())
+  
+  try:
+    await asyncio.gather(sensor_task, screen_task, monitor_task)
+  except asyncio.CancelledError:
+    # Handle task cancellation
+    pass
+  
+  # Ensure screen shows shutdown message
+  screen.shutdown()
+
 
 if __name__ == '__main__':
+  fan = PWMLED(19)
+  fan.value = 1.0
   asyncio.run(main())
-  
-'''
-Menu Navigation
-main -> [x] [x] [x] [menu]
-menu -> [shutoff] [cycle_wifi] [open_bias] [main]
-bias -> [x] [decrease_bias] [increase_bias] [main]
-'''
-
-'''
-Layer Updates
-temp_layer -> when temperature changes
-wifi_layer -> when connection strength, network, or ip changes
-menu_layer -> when button is pressed
-'''
